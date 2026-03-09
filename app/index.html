@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa con Leaflet</title>
+    <!-- CSS de Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        /* El mapa debe tener un tamaño definido */
+        #map {
+            height: 50vh;
+            width: 100wh;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script> <!-- Para leer excel -->
+</head>
+<style>
+    .modal {
+            display: none; /* Oculto por defecto */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+    .modal-content {
+            background: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+        }
+    .close {
+            float: right;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+</style>
+<body style="height: 100vh; width: 100wh;">
+
+
+
+    <header style="height: 5vh;">
+       <b>By Enrique. </b><i>Consulta y contrasta el estatus de los indicadores de desempeño municipal a través de un mapa interactivo</i>
+    </header>
+    <form style="height: 10vh;">
+            <div id="capas-contenido">
+                    <p>Módulo:</p>
+                    <select name="Modulo" id="selector_modulo" onchange="rellenar_Tema(value)">
+                        <option value="1" selected>M1. ORGANIZACIÓN</option>
+                        <option value="2">M2. HACIENDA</option>
+                        <option value="3">M3. GESTIÓN DEL TERRITORIO</option>
+                        <option value="4">M4. SERVICIOS PÚBLICOS</option>
+                        <option value="5">M5. MEDIO AMBIENTE</option>
+                        <option value="6">M6. DESARROLLO SOCIAL</option>
+                        <option value="7">M7. DESARROLLO ECONÓMICO</option>
+                        <option value="8">M8. GOBIERNO ABIERTO</option>
+
+                    </select>
+            </div>
+    </form>
+    <form style="height: 10vh;">
+            <div id="capas-contenido">
+                    <p>Tema:</p>
+                    <select name="Tema" id="selector_tema" onchange="rellenar_Indicador(value)">
+                        <option value="1.1" selected>1.1 Estructura</option>
+                        <option value="1.2">1.2 Planeación</option>
+                        <option value="1.3">1.3 Contraloría</option>
+                        <option value="1.4">1.4 Capacitación</option>
+                    </select>
+            </div>
+    </form>
+    <form style="height: 10vh;">
+            <div id="capas-contenido">
+                    <p>Indicador:</p>
+                    <select name="Indicador" id="selector_indicador" onchange="Crear_Mapa(value.split('.')[0],value.split('.')[1],value.split('.')[2],Año).addTo(map)">
+                        <option value="1.1.1" selected>1.1.1 Bando de Policía y Gobierno</option>
+                        <option value="1.1.2">1.1.2 Manuales de Organización</option>
+                        <option value="1.1.3">1.1.3 Tabulador de sueldos con la estructura salarial del personal de la administración pública municipal</option>
+                        <option value="1.1.4">1.1.4 Unidades administrativas existentes en función del número de unidades administrativas promedio</option>
+                        <option value="1.1.5">1.1.5 Personal municipal total por cada 1,000 habitantes</option>
+                        <option value="1.1.6">1.1.6 Nivel salarial del Presidente (a) Municipal</option>
+                        <option value="1.1.7">1.1.7 Participación de las mujeres en puestos de mando medio y superior de la administración pública municipal</option>
+
+                    </select>
+            </div>
+    </form>
+    <form style="height: 10vh;">
+            <div id="capas-contenido">
+                    <p>Año:</p>
+                    <select name="Año" id="selector_Año" onchange="Crear_Mapa(Modulo,Tema,Indicador,value).addTo(map)">
+                        <option value="20">2020</option>
+                        <option value="21">2021</option>
+                        <option value="22">2022</option>
+                        <option value="23">2023</option>
+                        <option value="24">2024</option>
+                        <option value="25" selected>2025</option>
+                    </select>
+            </div>
+    </form>
+    
+
+    <div id="map"></div>
+    <div>
+        <canvas id="myChart0" width= "1500vw" height= "800vh"></canvas>
+    </div>
+    <!--<div>
+        <canvas id="myChart" width= "300vw" height= "300vh"></canvas>
+    </div> -->
+
+    <!-- Modal -->
+    <div id="chartModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2 id="indicador_popup"></h2>
+            <canvas id="myChart"></canvas>
+        </div>
+    </div>
+
+
+
+    <div>
+        <canvas id="myChart2" width= "600vw" height= "300vh"></canvas>
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="Cargar_data.js"></script> <!-- Aquí cargamos el GeoJSON que tiene los valores de 1 a 6 para cada Indicador de los 84 municipios-->
+    <script> src="Graficas.js"</script>
+    <script>
+        try {
+            // Crear el mapa y centrarlo en una ubicación (latitud, longitud, zoom)
+            var map = L.map('map').setView([20.5, -98.9], 8); // Ciudad de México
+
+            // Cargar y mostrar los tiles de OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+                maxZoom: 13
+            }).addTo(map);
+
+            //var marker = L.marker([20.5, -98.9]).addTo(map);
+            //marker.bindPopup("<b>¡Hola!</b><br>Este es un marcador en Hgo.").openPopup();
+
+        } catch (error) {
+            console.error("Error al cargar el mapa:", error);
+        }
+
+
+        //const DATA_COUNT = 5;
+        //const NUMBER_CFG = {count: DATA_COUNT, min: 0, max: 100};
+
+
+
+        let data;
+        let Grafica;
+        const ctx =document.getElementById('myChart').getContext('2d');
+
+        const modal = document.getElementById("chartModal");
+        //const openBtn = document.getElementById("openModal");
+        const closeBtn = document.getElementById("closeModal");
+
+
+        let data2;
+        let Grafica2;
+        const ctx2 =document.getElementById('myChart2').getContext('2d');
+
+        let data0;
+        let Grafica0;
+        const ctx0 =document.getElementById('myChart0').getContext('2d');
+
+
+        Modulo= "1";
+        Tema = "1";
+        Indicador = "1"; //Nos vamos al 1.1.1 pot defecto
+        Año= "25"; //Lo pondremos por defecto en 2025 //Act 20258
+
+
+        
+
+        //Creemos las variables que vamos a necesitar para el pop up de cada municipio
+        let A20 = 0;
+        let A21 = 0;
+        let A22 = 0;
+        let A23 = 0;
+        let A24 = 0;
+        let A25 = 0; //Act 2025
+        
+        let P1 = 0;
+        let P2 = 0;
+        let P3 = 0;
+        let P4 = 0;
+        let P5 = 0;
+        let P0 = 0;
+
+        let p1 = 0;
+        let p2 = 0;
+        let p3 = 0;
+        let p4 = 0;
+        let p5 = 0;
+        let p0 = 0;
+
+        let Optimos = [];
+        let EnProcesos = [];
+        let Rezagos = [];
+        let RezNoInfo = [];
+        let NoDispo = [];
+        let NoMedible = [];
+
+
+
+        //Según la santísima trinidad: Lalo, Itz e Indemun vamos a guiarnos con que
+
+        //v = óptimo (verde) = 1
+        //a = en proceso (amarillo) = 2
+        //a = rezago (rojo) = 3
+        //ndR = rezago por no presentar información (rojo obscuro)} = 5
+        //nd = información no disponible (gris) = 0
+        //nm = no medible (blanco) = 4
+
+
+        // Función para determinar el color según el valor del indicador (ROBADA y CORREGIDA [Sobre todo corregida])
+        const getColor = (value) => {
+        if (value === null || value === undefined) {
+            return 'rgba(102, 45, 45, 0.95)'; // Cherry para valores no definidos
+        }
+        
+        switch (value) {
+            case 1: //Optimo
+            return 'rgba(144, 232, 82, 0.8)';  // Verde con 80% de opacidad
+            case 2: //En proceso
+            return 'rgba(241, 255, 64, 0.8)';  // Amarillo con 80% de opacidad
+            case 3: //Rezago
+            return 'rgba(255, 0, 0, 0.8)';     // Rojo con 80% de opacidad
+            case 4://No medible
+            return 'rgba(255, 255, 255, 0.8)'; // Blanco con 80% de opacidad
+            case 0: //Información no disponible
+            return 'rgba(176, 176, 176, 0.8)'; // Gris con 80% de opacidad
+            case 5: //Rezago por no presentar información
+            return 'rgba(102, 45, 45, 0.8)'; // Rojo obscuro con 80% de opacidad
+            default:
+            return 'rgba(0, 0, 0, 0.95)';  // Negro con 95% de opacidad para valores desconocidos
+        }
+        };
+        //La función debe recibir las 4 clasificaciones y luego mostrar el mapa
+        //y obtener el la información necesaria para las gráficas
+
+        //Función para filtrar por columnas (lo defino como función porque se va a ocupar bastante)
+        function filtrarPorCol(data, columnasPermitidas) {
+            return {
+                type: "FeatureCollection",
+                features: data.features.map(f => ({
+                    type: "Feature",
+                    geometry: f.geometry,
+                    properties: Object.fromEntries(
+                        Object.entries(f.properties)
+                            .filter(([key]) => columnasPermitidas.includes(key))
+                    )
+                }))
+            };
+        }
+        Crear_Mapa("1","1","1","25").addTo(map);
+
+        function Crear_Mapa(M,T,I,A) {
+            Modulo = M;
+            Tema = T;
+            Indicador = I;
+            Año = A;
+            let Combinacion ="M"+M+"_"+T+"_"+I+"_"+A;
+                console.log(Combinacion);
+
+                // Filtramos solo las columnas deseadas
+                const columnas = [Combinacion, "CVEGEO"];
+                const geojsonFiltrado = filtrarPorCol(Data2, columnas);
+
+                //
+                //Tarjeta_indv(M,T,I,A,13001) // Como ejemplo
+                //Tarjeta_por_Modulo(M,A,13001)
+                //Tarjeta_por_Año(A)
+                //
+                // Añadir GeoJSON filtrado
+                return L.geoJSON(geojsonFiltrado, {
+                    style: function(feature) {
+                    const valor = feature.properties[Combinacion];
+
+                    return {
+                        fillColor: getColor(valor),
+                        weight: 1,
+                        opacity: 1,
+                        color: 'white',
+                        fillOpacity: 1
+                    };
+                },
+                    onEachFeature: function (feature, layer) {
+
+                        layer.on("click", function () {
+                                Tarjeta_indv(Modulo, Tema, Indicador, Año, feature.properties.CVEGEO);
+                                Tarjeta_por_Modulo(Modulo, Año, feature.properties.CVEGEO);
+                                Tarjeta_por_Año(Año);
+                        });
+
+                        //feature.addEvent.Listener("click",Tarjeta_indv(Modulo,Tema,Año,Indicador,feature.properties.CVEGEO));
+                        //feature.addEvent.Listener("click",Tarjeta_por_Modulo(Modulo,Año,feature.properties.CVEGEO));
+                        //feature.addEvent.Listener("click",Tarjeta_por_Año(Año));
+
+                        //Tarjeta_indv(Modulo,Tema,Año,Indicador,feature.properties.CVEGEO);
+                        //Tarjeta_por_Modulo(Modulo,Año,feature.properties.CVEGEO);
+                        //Tarjeta_por_Año(Año);
+                        
+                        // Mostrar solo las propiedades filtradas
+                        let popupContent = "";
+                        for (let key in feature.properties) {
+                            popupContent += `<b>${key}</b>: ${feature.properties[key]}<br>`;
+                            
+                        }
+                        popupContent += '<b><img src="Archivo_Vital_NO_BORRAR.jpg" style="width: 80%;"></b>'
+                        layer.bindPopup(popupContent);
+                    }
+                });
+        }
+
+        //Ahora la que nos da para el histórico
+        //Intentaré explicarla lo mejor posible
+        function Tarjeta_indv(M,T,I,A,Mpio){ // M de Módulo, T de Tema, I de indicador, A de año y Mpio del municipio (CVEGEO)
+            let Semi_combinacion = "M"+M+"_"+T+"_"+I+"_"; //Para poder usar la de varios años
+            const columnas = [Semi_combinacion+"20", Semi_combinacion+"21", Semi_combinacion+"22", Semi_combinacion+"23", Semi_combinacion+"24",Semi_combinacion+"25", "CVEGEO"];
+
+            //Y la filtramos
+            const geojsonFiltrado = filtrarPorCol(Data2, columnas);
+            let geojsonFiltrado2 = geojsonFiltrado.features.find(
+                f => f.properties.CVEGEO === Mpio
+            );
+            //
+            //Solo para ver
+            console.log(geojsonFiltrado2.properties[Semi_combinacion+"20"]); //
+            A20=geojsonFiltrado2.properties[Semi_combinacion+"20"]
+            console.log(geojsonFiltrado2.properties[Semi_combinacion+"21"]); //
+            A21=geojsonFiltrado2.properties[Semi_combinacion+"21"]
+            console.log(geojsonFiltrado2.properties[Semi_combinacion+"22"]); //
+            A22=geojsonFiltrado2.properties[Semi_combinacion+"22"]
+            console.log(geojsonFiltrado2.properties[Semi_combinacion+"23"]); //
+            A23=geojsonFiltrado2.properties[Semi_combinacion+"23"]
+            console.log(geojsonFiltrado2.properties[Semi_combinacion+"24"]); //
+            A24=geojsonFiltrado2.properties[Semi_combinacion+"24"]
+            console.log(geojsonFiltrado2.properties[Semi_combinacion+"25"]); //
+            A25=geojsonFiltrado2.properties[Semi_combinacion+"25"]
+            //
+            //
+
+            let geojsonFiltrado3 = Data2.features.find(
+                f => f.properties.CVEGEO === Mpio
+            );
+
+            let columnas_año= Object.keys(geojsonFiltrado3.properties).filter(col => col.split("_")[3] === A);
+            let indicador_año = columnas_año.map(col => geojsonFiltrado3.properties[col]);
+            console.log(indicador_año);
+            P1 = (100 * indicador_año.filter(v => Number(v) === 1).length) / indicador_año.length;
+            console.log(P1+" % de optimos") //
+            P2 = (100 * indicador_año.filter(v => Number(v) === 2).length) / indicador_año.length;
+            console.log(P2+" % de en proceso") //
+            P3 = (100 * indicador_año.filter(v => Number(v) === 3).length) / indicador_año.length;
+            console.log(P3+" % de rezago") //
+            P4 = (100 * indicador_año.filter(v => Number(v) === 4).length) / indicador_año.length;
+            console.log(P4+" % de no medibles") //
+            P5 = (100 * indicador_año.filter(v => Number(v) === 5).length) / indicador_año.length;
+            console.log(P5+" % de rezago por no info") //
+            P0 = (100 * indicador_año.filter(v => Number(v) === 0).length) / indicador_año.length;
+            console.log(P0+" % de no disponible") //
+            Gráfica_Pastel(Mpio);
+        }
+        function Tarjeta_por_Modulo(M,A,Mpio){
+
+            let geojsonFiltrado = Data2.features.find(
+                f => f.properties.CVEGEO === Mpio
+            );
+            let columnas_modulo= Object.keys(geojsonFiltrado.properties).filter(col => col.split("_")[0] === "M"+M && col.split("_")[3] === A).concat(["CVEGEO"]);
+            const geojsonFiltrado2 = filtrarPorCol(Data2, columnas_modulo);
+
+            let geojsonFiltrado3 = geojsonFiltrado2.features.find(
+                f => f.properties.CVEGEO === Mpio
+            );
+            let modulos_año= columnas_modulo.map(col => geojsonFiltrado3.properties[col]);
+
+            p1 = (modulos_año.filter(v => Number(v) === 1).length);
+            console.log(p1+" de optimos") //
+            p2 = (modulos_año.filter(v => Number(v) === 2).length);
+            console.log(p2+" de en proceso") //
+            p3 = (modulos_año.filter(v => Number(v) === 3).length);
+            console.log(p3+" de rezago") //
+            p4 = (modulos_año.filter(v => Number(v) === 4).length);
+            console.log(p4+" de 4 (no medible)") //
+            p5 = (modulos_año.filter(v => Number(v) === 5).length);
+            console.log(p5+" de 5(rezago por no info)") //
+            p0 = (modulos_año.filter(v => Number(v) === 0).length);
+            console.log(p0+" de 0 (no disponible)") //
+
+            Gráfica_Barras1(Mpio);
+            
+        }
+        function Tarjeta_por_Año(A){
+            let geojsonFiltrado = Data2.features.find(
+                f => f.properties.CVEGEO === 13001 //No importa, esto solo es por mi facilidad
+            );
+
+            Optimos = [];
+            EnProcesos = [];
+            Rezagos = [];
+            RezNoInfo = [];
+            NoDispo = [];
+            NoMedible = [];
+
+            let columnas_modulo= Object.keys(geojsonFiltrado.properties).filter(col => col.split("_")[3] === A).concat(["CVEGEO"]);
+            const geojsonFiltrado2 = filtrarPorCol(Data2, columnas_modulo);
+            geojsonFiltrado2.features.forEach(feature => {
+
+                let i = feature.properties.CVEGEO;
+                // contar valores iguales a 1
+                let z1 = Object.values(feature.properties).filter(v => Number(v) === 1).length;
+                Optimos.push(z1);
+
+                let z2 = Object.values(feature.properties).filter(v => Number(v) === 2).length;
+                EnProcesos.push(z2);
+
+                let z3 = Object.values(feature.properties).filter(v => Number(v) === 3).length;
+                Rezagos.push(z3);
+
+                let z4 = Object.values(feature.properties).filter(v => Number(v) === 4).length;
+                NoMedible.push(z4);
+
+                let z5 = Object.values(feature.properties).filter(v => Number(v) === 5).length;
+                RezNoInfo.push(z5);
+
+                let z0 = Object.values(feature.properties).filter(v => Number(v) === 0).length;
+                NoDispo.push(z1);
+
+                //console.log(p1, " de ", i);
+                Gráfica_Barras0(A)
+            });
+        }
+        //Ya tenemos las funciones que nos pueden regresar los valores para las gáficas y el mapa
+        //Ahora solo necesitamos una forma de seleccionar los 4 niveles para filtrar sobre los valores
+        //Para ello crearemos 4 objetos tipo select en el index, pero necesitamos una forma de llenar las opciones
+        //Dado que el Tema depende del Módulo y el Indicador del Módulo y el Tema usaremos dos funciones que rellenen las opcciones 
+        //de sus respectivos select
+
+        //INDICADOR
+        function rellenar_Indicador(X){ //X nos dirá el Tema que se ha seleccionado
+            const menu = document.getElementById("selector_indicador");
+            menu.innerHTML = ""; // Se supone que borra fácil TODAS las opciones del select
+
+            let filtrado_M=Lista_Descriptor.filter(v => v[1].split("_")[0] === X);
+            let lista= filtrado_M.map(fila => fila[2]);
+
+            lista.forEach(ind => {
+                const opcion = document.createElement("option");
+                opcion.value = ind.split("_")[0];
+                opcion.text = ind.replace(/\_/g, " ");
+                menu.appendChild(opcion);
+            })
+            
+            Crear_Mapa(X.split(".")[0],X.split(".")[1],"1",Año).addTo(map);
+            console.log("AAAAAAAAAAAAAAAAAAA");
+        }
+
+        //TEMA
+        function rellenar_Tema(X){ //X nos dirá el Módulo que se ha escogido
+            const menu = document.getElementById("selector_tema");
+            menu.innerHTML = ""; // Se supone que borra fácil TODAS las opciones del select
+
+            let filtrado_M=Lista_Descriptor.filter(v => v[0].split("_")[0] === X);
+            let lista_sucia= filtrado_M.map(fila => fila[1]); //En esta se repite los valores tal como en el excel
+            let lista = lista_sucia.filter((item, index) => lista_sucia.indexOf(item) === index); //Esto limpia como un unique
+
+            lista.forEach(ind => {
+                const opcion = document.createElement("option");
+                opcion.value = ind.split("_")[0];
+                opcion.text = ind.replace(/\_/g, " ");
+                menu.appendChild(opcion);
+            })
+            rellenar_Indicador(X+".1");
+            Crear_Mapa(X,"1","1",Año).addTo(map);
+
+            console.log("BBBBBBBBBBBBBBBBBBBB");
+        }
+        //Ahora queremos la función que genera y cambia la grafica de pastel
+        function Gráfica_Pastel(Mpio){
+
+
+            const select = document.getElementById("selector_indicador");
+
+            // Obtener el índice seleccionado
+            const indice = select.selectedIndex;
+
+            // Obtener el texto de la opción seleccionada
+            const textoSeleccionado = select.options[indice].text;
+
+            select.textContent = textoSeleccionado;
+
+        
+            document.getElementById("indicador_popup").textContent = Indicador;
+            modal.style.display = "block";
+            let data = {
+            labels: ['Optimos', 'En Proceso', 'Rezago','Rezago por no información', 'No disponible', 'No medible'],
+            datasets: [
+                {
+                
+                data: [P1,P2,P3,P5,P0,P4],
+                backgroundColor: [
+                    '#90E852',
+                    '#F1FF40',
+                    '#FF0000',
+                    '#662D2D',
+                    '#B0B0B0',
+                    '#FFFFFF'
+                ]
+                }
+            ]
+            };
+            if (Grafica) {
+                Grafica.destroy();
+            }
+            Grafica = new Chart(ctx, {
+                type: 'pie',
+                data: data,
+                options: {
+                    responsive: false,
+                    plugins: {
+                        legend: {
+                            position: 'absolute',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Indicadores en '+Mpio+' en el año 20'+Año
+                        }
+                    }
+                },
+            });
+
+        }
+        closeBtn.onclick = function() {
+            modal.style.display = "none";
+        };
+
+        // Cerrar si se hace clic fuera del contenido
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        };
+
+        //Ahora queremos la función que genera y cambia la grafica de pastel
+        function Gráfica_Barras1(Mpio){
+            data2 = {
+            labels: ['Optimos', 'En Proceso', 'Rezago','Rezago por no información', 'No disponible', 'No medible'],
+            datasets: [
+                {
+                label: 'Óptimo',
+                data: [p1,p2,p3,p5,p0,p4],
+                backgroundColor: [
+                    '#90E852',
+                    '#F1FF40',
+                    '#FF0000',
+                    '#662D2D',
+                    '#B0B0B0',
+                    '#FFFFFF'
+                ],
+                borderColor: [
+                    '#90E852',
+                    '#F1FF40',
+                    '#FF0000',
+                    '#662D2D',
+                    '#B0B0B0',
+                    '#000000'
+                ],
+                borderWidth: 1
+                }]
+            };
+            if (Grafica2) {
+                Grafica2.destroy();
+            }
+            Grafica2 = new Chart(ctx2, {
+                type: 'bar',
+                data: data2,
+                options: {
+                    responsive: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Indicadores Totales en '+Mpio+' en el año 20'+Año
+                        }
+                    }
+                },
+            });
+        }
+
+
+
+
+        //Ahora queremos la función que genera y cambia la grafica de pastel
+        function Gráfica_Barras0(A){
+            data0 = {
+            labels: [
+                "Acatlán",
+                "Acaxochitlán",
+                "Actopan",
+                "Agua Blanca de Iturbide",
+                "Ajacuba",
+                "Alfajayucan",
+                "Almoloya",
+                "Apan",
+                "Atitalaquia",
+                "Atlapexco",
+                "Atotonilco de Tula",
+                "Atotonilco el Grande",
+                "Calnali",
+                "Cardonal",
+                "Chapantongo",
+                "Chapulhuacán",
+                "Chilcuautla",
+                "Cuautepec de Hinojosa",
+                "El Arenal",
+                "Eloxochitlán",
+                "Emiliano Zapata",
+                "Epazoyucan",
+                "Francisco I. Madero",
+                "Huasca de Ocampo",
+                "Huautla",
+                "Huazalingo",
+                "Huehuetla",
+                "Huejutla de Reyes",
+                "Huichapan",
+                "Ixmiquilpan",
+                "Jacala de Ledezma",
+                "Jaltocán",
+                "Juárez Hidalgo",
+                "La Misión",
+                "Lolotla",
+                "Metepec",
+                "Metztitlán",
+                "Mineral de la Reforma",
+                "Mineral del Chico",
+                "Mineral del Monte",
+                "Mixquiahuala de Juárez",
+                "Molango de Escamilla",
+                "Nicolás Flores",
+                "Nopala de Villagrán",
+                "Omitlán de Juárez",
+                "Pachuca de Soto",
+                "Pacula",
+                "Pisaflores",
+                "Progreso de Obregón",
+                "San Agustín Metzquititlán",
+                "San Agustín Tlaxiaca",
+                "San Bartolo Tutotepec",
+                "San Felipe Orizatlán",
+                "San Salvador",
+                "Santiago de Anaya",
+                "Santiago Tulantepec de Lugo Guerrero",
+                "Singuilucan",
+                "Tasquillo",
+                "Tecozautla",
+                "Tenango de Doria",
+                "Tepeapulco",
+                "Tepehuacán de Guerrero",
+                "Tepeji del Río de Ocampo",
+                "Tepetitlán",
+                "Tetepango",
+                "Tezontepec de Aldama",
+                "Tianguistengo",
+                "Tizayuca",
+                "Tlahuelilpan",
+                "Tlahuiltepa",
+                "Tlanalapa",
+                "Tlanchinol",
+                "Tlaxcoapan",
+                "Tolcayuca",
+                "Tula de Allende",
+                "Tulancingo de Bravo",
+                "Villa de Tezontepec",
+                "Xochiatipan",
+                "Xochicoatlán",
+                "Yahualica",
+                "Zacualtipán de Ángeles",
+                "Zapotlán de Juárez",
+                "Zempoala",
+                "Zimapán"
+            ],
+            datasets: [
+                {
+                label: 'Optimos',
+                data: Optimos,
+                backgroundColor:'#90E852',
+                borderColor: '#90E852'
+                },
+                {
+                label: 'En Proceso',
+                data: EnProcesos,
+                backgroundColor:'#F1FF40',
+                borderColor: '#F1FF40'
+                },
+                {
+                label: 'Rezago',
+                data: Rezagos,
+                backgroundColor: '#FF0000',
+                borderColor: '#FF0000'
+                },
+                {
+                label: 'Rezago por no info',
+                data: RezNoInfo,
+                backgroundColor: '#662D2D',
+                borderColor: '#662D2D'
+                },
+                {
+                label: 'No disponible',
+                data: NoDispo,
+                backgroundColor: '#662D2D',
+                borderColor: '#662D2D'
+                },
+                {
+                label: 'No medible',
+                data: NoMedible,
+                backgroundColor: '#FFFFFF',
+                borderColor: '#000000'
+                },
+            ]
+            };
+            if (Grafica0) {
+                Grafica0.destroy();
+            }
+            Grafica0 = new Chart(ctx0, {
+                type: 'bar',
+                data: data0,
+                options: {
+                    responsive: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        },
+                        x: {
+                            stacked: false
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Indicadores Anuales en el año 20'+A
+                        }
+                    }
+                },
+            });
+        }
+
+        //Aquí leemos el excel que contiene nuestras clasificaciones como una lista de listas para más easy
+        let Lista_Descriptor = [];
+        fetch('Descriptor2.xlsx') // Debe estar accesible públicamente (Qué se supone que significa eso?)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("No se pudo cargar el archivo Excel");
+                }
+                return response.arrayBuffer();
+            })
+            .then(data => {
+                try {
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    Lista_Descriptor = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    //console.log("Contenido del Excel:", Lista_Descriptor);
+                } catch (error) {
+                    console.error("Error al procesar el Excel:", error);
+                }
+            })
+            .catch(err => console.error("Error al cargar el archivo:", err));
+
+
+    </script>
+
+</body>
+</html>
