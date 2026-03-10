@@ -8,14 +8,31 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         #map {
-            height: 80vh;
+            height: 100vh;
             width: 100wh;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script> <!-- Para leer excel -->
 </head>
 <style>
-
+    .panel-selectores select {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+        min-width: 10px;
+    }
+    .recuadros{
+        width: 30px; 
+        height: 30px; 
+        border: 1px solid #333131; 
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: bold;
+        color: #ffffff;
+    }
 
 
     .modal {
@@ -51,15 +68,15 @@
 </style>
 <body style="height: 100vh; width: 100wh;">
 
-    <button id ="Grafica_ModAñoMpio" style="position: absolute; top: 50px; right: 150px; z-index: 10000;" onclick="Tarjeta_por_Modulo(Modulo,Año,Municipio)">MAM </button>
-    <button id ="Grafica_Año" style="position: absolute; top: 100px; right: 150px; z-index: 10000;" onclick="Tarjeta_por_Año(Año)">Anual </button>
+    <button id ="Grafica_ModAñoMpio" style="display: none; position: absolute; top: 50px; right: 150px; z-index: 10000;" onclick="Tarjeta_por_Modulo(Modulo,Año,Municipio)">MAM </button>
+    <button id ="Grafica_Año" style="display: none; position: absolute; top: 100px; right: 150px; z-index: 10000;" onclick="Tarjeta_por_Año(Año)">Anual </button>
 
     <header style="height: 5vh;">
        <b>By Enrique. </b><i>Consulta y contrasta el estatus de los indicadores de desempeño municipal a través de un mapa interactivo</i>
     </header>
     <form style="position: absolute; z-index: 100000; top: 10vh;">
             <div id="capas-contenido">
-                    <p>Módulo:</p>
+                    <!--<p>Módulo:</p>-->
                     <select name="Modulo" id="selector_modulo" onchange="rellenar_Tema(value)">
                         <option value="1" selected>M1. ORGANIZACIÓN</option>
                         <option value="2">M2. HACIENDA</option>
@@ -75,7 +92,7 @@
     </form>
     <form style="position: absolute; z-index: 100000; top: 20vh;">
             <div id="capas-contenido">
-                    <p>Tema:</p>
+                    <!--<p>Tema:</p>-->
                     <select name="Tema" id="selector_tema" onchange="rellenar_Indicador(value)">
                         <option value="1.1" selected>1.1 Estructura</option>
                         <option value="1.2">1.2 Planeación</option>
@@ -86,7 +103,7 @@
     </form>
     <form style="position: absolute; z-index: 100000; top: 30vh;">
             <div id="capas-contenido">
-                    <p>Indicador:</p>
+                    <!--<p>Indicador:</p>-->
                     <select name="Indicador" id="selector_indicador" onchange="Crear_Mapa(value.split('.')[0],value.split('.')[1],value.split('.')[2],Año).addTo(map)">
                         <option value="1.1.1" selected>1.1.1 Bando de Policía y Gobierno</option>
                         <option value="1.1.2">1.1.2 Manuales de Organización</option>
@@ -101,7 +118,7 @@
     </form>
     <form style="position: absolute; z-index: 100000; top: 40vh;">
             <div id="capas-contenido" style="z-index: 100000;">
-                    <p>Año:</p>
+                    <!--<p>Año:</p>-->
                     <select name="Año" id="selector_Año" onchange="Crear_Mapa(Modulo,Tema,Indicador,value).addTo(map)">
                         <option value="20">2020</option>
                         <option value="21">2021</option>
@@ -128,18 +145,16 @@
             <canvas id="myChart0"></canvas>
         </div>
     </div>
-    <!--<div>
-        <canvas id="myChart" width= "300vw" height= "300vh"></canvas>
-    </div> -->
+
 
     <!-- Modal -->
-    <div id="chartModal" class="modal" style="z-index: 1000000000;">
+    <!--<div id="chartModal" class="modal" style="z-index: 1000000000;">
         <div class="modal-content">
             <span class="close" id="closeModal">&times;</span>
             <h2 id="indicador_popup"></h2>
             <canvas id="myChart"></canvas>
         </div>
-    </div>
+    </div>-->
 
 
     <!--<Este es el contenedor canva para la gráfica de barras por municipio, módulo y año-->
@@ -186,11 +201,11 @@
         //Para la gráfica de pastel
         let data;
         let Grafica;
-        const ctx =document.getElementById('myChart').getContext('2d');
+        //const ctx =document.getElementById('myChart').getContext('2d');
 
-        const modal = document.getElementById("chartModal");
+        //const modal = document.getElementById("chartModal");
         //const openBtn = document.getElementById("openModal");
-        const closeBtn = document.getElementById("closeModal");
+        //const closeBtn = document.getElementById("closeModal");
 
         //Para la gráfica de año-municipio-módulo
         let data2;
@@ -307,7 +322,47 @@
                 }))
             };
         }
-        
+        //Esta función es un poco  rebuscada pero es completamente necesaria para el popup
+        //Tendré que explicarla a detalle en añlgún lado
+        map.on('popupopen', function (e) {
+            const popupNode = e.popup.getElement();
+            //CUADRADO
+            const feature = e.popup._source.feature;
+            const Mpio_Act = feature.properties;
+
+            for(const año of ["20","21","22","23","24","25"]){
+            const cuadro25 = popupNode.querySelector('#cuadro_A'+año);
+            if (cuadro25) {
+                let valor25 = Mpio_Act["M" + Modulo + "_" + Tema + "_" + Indicador + "_"+año];
+                cuadro25.style.backgroundColor = getColor(valor25);
+                
+                
+                if (valor25 == 4 ) {
+                    cuadro25.style.color = "black";
+                }
+            }
+            //
+            }
+            //Buscamos el canvas EXCLUSIVAMENTEEEEEE dentro del popup o puede haber problema
+            const canvasExiste = popupNode.querySelector('#canvasPopup');
+            
+            if (canvasExiste) {
+                const feature = e.popup._source.feature;
+                //NEW 2
+                const textoSeleccionado = document.getElementById('selector_indicador').options[document.getElementById('selector_indicador').selectedIndex].text;
+                const titulo = popupNode.querySelector('#indicador_popup');
+                console.log(textoSeleccionado);
+                if(titulo){
+                    titulo.textContent =textoSeleccionado;
+                }
+                //
+                // Por lo visto debe haber un delay de 100ms pa que Chart tenga tiempo
+                setTimeout(() => {
+                    Tarjeta_indv(Modulo, Tema, Indicador, Año, feature.properties.CVEGEO, canvasExiste);
+                }, 100);
+            }
+        });
+        //
 
         function Crear_Mapa(M,T,I,A) {
             //Cada que la función se manda a llamar para crear el mapa reescribirá los valores 
@@ -336,26 +391,79 @@
                 },
                 onEachFeature: function (feature, layer) {
                     layer.on("click", function () {
-                            Tarjeta_indv(Modulo, Tema, Indicador, Año, feature.properties.CVEGEO);
-                            //Tarjeta_por_Modulo(Modulo, Año, feature.properties.CVEGEO);
-                            //Tarjeta_por_Año(Año);
-                            Municipio = feature.properties.CVEGEO
+                        //Tarjeta_indv(Modulo, Tema, Indicador, Año, feature.properties.CVEGEO);
+                        //Tarjeta_por_Modulo(Modulo, Año, feature.properties.CVEGEO);
+                        //Tarjeta_por_Año(Año);
+                        //Municipio = feature.properties.CVEGEO
+                        // 1. Creamos un contenedor temporal para el popup
+                        const contenedor = document.createElement('div');
+                        contenedor.style.cssText = "width:300px; min-height:350px; display:block;"; 
+                        contenedor.innerHTML = `
+                            <div>
+                            <h3 id="indicador_popup" style="text-align:center; font-size:14px; margin-bottom:10px;">AAA</h3>
+                            <h4 id="indicador_popup" style="font-size:11px; margin-bottom:10px;">Histórico:</h>
+                            <div id="contenedor_historico" style="display: flex; justify-content: center; gap: 5px; margin-bottom: 15px;">
+                            <div id="cuadro_A20" title="Año 2020" class="recuadros"">2020</div>
+                            <div id="cuadro_A21" title="Año 2021" class="recuadros"">2021</div>
+                            <div id="cuadro_A22" title="Año 2022" class="recuadros"">2022</div>
+                            <div id="cuadro_A23" title="Año 2023" class="recuadros"">2023</div>
+                            <div id="cuadro_A24" title="Año 2024" class="recuadros"">2024</div>
+                            <div id="cuadro_A25" title="Año 2025" class="recuadros"">2025</div>
+                            </div>
+                            <canvas id="canvasPopup" width="300" height="300" style="display:block;"></canvas>
+                            </div>
+                        `;
+                        layer.bindPopup(contenedor).openPopup();
+
                     });
-                    // Mostrar solo las propiedades filtradas
-                    let popupContent = "";
-                    for (let key in feature.properties) {
-                        popupContent += `<b>${key}</b>: ${feature.properties[key]}<br>`;     
-                    }
-                    layer.bindPopup(popupContent);
                 }
             });
         }
+        ///NEW 3
+        const Caja = L.control({ position: 'topleft' });
+        Caja.onAdd = function (map) {
+            const div = L.DomUtil.create('div', 'panel-selectores');
+
+            div.style.padding = "12px";
+            div.style.boxShadow = "0 0 15px rgba(0,0,0,0.2)";
+
+            div.style.width = "20vw";
+            div.style.maxWidth = "35vw";
+
+            const crearGrupo = (textoLabel, idSelect) => {
+                const grupo = document.createElement('div');
+                grupo.style.marginBottom = "10px";
+                
+                const label = document.createElement('label');
+                label.textContent = textoLabel;
+                label.style.fontSize = "11px";
+                label.style.color = "#555";
+
+                const select = document.getElementById(idSelect);
+                if (select) {
+                    grupo.appendChild(label);
+                    grupo.appendChild(select);
+                    select.style.width = "100%";
+                    select.style.display = "block";
+                }
+                return grupo;
+            };
+            //Es que no quise tener que volver a hacerlos :c
+            div.appendChild(crearGrupo("Módulo:", "selector_modulo"));
+            div.appendChild(crearGrupo("Tema", "selector_tema"));
+            div.appendChild(crearGrupo("Idicador", "selector_indicador"));
+            div.appendChild(crearGrupo("Año", "selector_Año"));
+
+            return div;
+        };
+        Caja.addTo(map);
+//////
 
 //////////////////////////////////////////
 
 //La función primera nos dará la información necesaria para nuestro Popup
         //Por lo que se debe llamar cada vez que se hace clic sobre un municipio
-        function Tarjeta_indv(M,T,I,A,Mpio){ // M de Módulo, T de Tema, I de indicador, A de año y Mpio del municipio (CVEGEO)
+        function Tarjeta_indv(M,T,I,A,Mpio,ID){ // M de Módulo, T de Tema, I de indicador, A de año y Mpio del municipio (CVEGEO)
             let Semi_combinacion = "M"+M+"_"+T+"_"+I+"_"; //Para poder usar la de varios años
             const columnas = [Semi_combinacion+"20", Semi_combinacion+"21", Semi_combinacion+"22",
                 Semi_combinacion+"23", Semi_combinacion+"24",Semi_combinacion+"25", "CVEGEO"]; //Hasta el año actual
@@ -367,6 +475,7 @@
             );
             
             //Estas son del histórico de cada municipio
+            //Y ya no se ocupan pipipipipi
             console.log(geojsonFiltrado2.properties[Semi_combinacion+"20"]); //
             A20=geojsonFiltrado2.properties[Semi_combinacion+"20"]
             console.log(geojsonFiltrado2.properties[Semi_combinacion+"21"]); //
@@ -388,6 +497,9 @@
             let columnas_año= Object.keys(geojsonFiltrado3.properties).filter(col => col.split("_")[3] === A);
             let indicador_año = columnas_año.map(col => geojsonFiltrado3.properties[col]);
             console.log(indicador_año);
+
+
+
             v_AñoMpio = (100 * indicador_año.filter(v => Number(v) === 1).length) / indicador_año.length;
             console.log(v_AñoMpio+" % de optimos") //
 
@@ -405,8 +517,10 @@
 
             nd_AñoMpio = (100 * indicador_año.filter(v => Number(v) === 0).length) / indicador_año.length;
             console.log(nd_AñoMpio+" % de no disponible") //
-
-            Gráfica_Pastel(Mpio);
+            
+            // Verificación en consola
+            console.log("Datos para la gráfica:", [v_AñoMpio, a_AñoMpio, r_AñoMpio]);
+            Gráfica_Pastel(Mpio,ID);
         }
 
         //Ahora esta función nos dará la información necesaria para la gráfica de Municipio-Módulo-Año
@@ -528,9 +642,17 @@
 
         }
         //Ahora queremos la función que genera y cambia la grafica de pastel
-        function Gráfica_Pastel(Mpio){        
-            document.getElementById("indicador_popup").textContent = Indicador;
-            modal.style.display = "block";
+        function Gráfica_Pastel(Mpio,ID){        
+            //document.getElementById("indicador_popup").textContent = document.getElementById("selector_indicador").value;;
+            //modal.style.display = "block";
+            //canvas=document.getElementById(ID)
+            // Si ID ya es el canvas, lo usamos. Si es un texto, lo buscamos.
+            const canvas = (typeof ID === 'string') ? document.getElementById(ID) : ID;
+            if (!canvas) {
+                console.error("No se encontró el canvas con ID:", ID);
+                return;
+            }
+            const ctx = canvas.getContext('2d');
             data = {
             labels: ['Optimos', 'En Proceso', 'Rezago','Rezago por no información', 'No disponible', 'No medible'],
             datasets: [
@@ -558,7 +680,7 @@
                     responsive: false,
                     plugins: {
                         legend: {
-                            position: 'absolute',
+                            position: 'bottom',
                         },
                         title: {
                             display: true,
@@ -569,16 +691,16 @@
             });
 
         }
-        closeBtn.onclick = function() {
-            modal.style.display = "none";
-        };
+        //closeBtn.onclick = function() {
+        //    modal.style.display = "none";
+        //};
 
         //Se cierrar si se hace clic afuera
-        window.onclick = function(event) {
-            if (event.target === modal) {
-                modal.style.display = "none";
-            }
-        };
+        //window.onclick = function(event) {
+        //    if (event.target === modal) {
+        //        modal.style.display = "none";
+         //   }
+        //};
 
         //Ahora queremos la función que genera y cambia la grafica de pastel
         function Gráfica_Barras1(Mpio){
