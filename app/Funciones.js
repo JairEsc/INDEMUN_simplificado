@@ -1,186 +1,5 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Indicadores Indemun</title>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <style>
-        #map {
-            height: 80vh;
-            width: 100wh;
-        }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script> <!-- Para leer excel -->
-</head>
-<style>
-
-
-
-    .modal {
-            display: none; /* La idea es que este oculto por defecto */
-            position: fixed;
-            z-index: 1000000;
-            left: 0;
-            top: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0,0,0,0.5);
-
-            justify-content: center;
-            align-items: center;
-        }
-    .modal-content {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            width: 90vw;
-            height: 80vh;
-        }
-    .close {
-            float: right;
-            font-size: 20px;
-            cursor: pointer;
-        }
-    .modal-content canvas{
-        width:100%;
-        height:70vh;
-    }
-
-</style>
-<body style="height: 100vh; width: 100wh;">
-
-    <button id ="Grafica_ModAñoMpio" style="position: absolute; top: 50px; right: 150px; z-index: 10000;" onclick="Tarjeta_por_Modulo(Modulo,Año,Municipio)">MAM </button>
-    <button id ="Grafica_Año" style="position: absolute; top: 100px; right: 150px; z-index: 10000;" onclick="Tarjeta_por_Año(Año)">Anual </button>
-
-    <header style="height: 5vh;">
-       <b>By Enrique. </b><i>Consulta y contrasta el estatus de los indicadores de desempeño municipal a través de un mapa interactivo</i>
-    </header>
-    <form style="position: absolute; z-index: 100000; top: 10vh;">
-            <div id="capas-contenido">
-                    <p>Módulo:</p>
-                    <select name="Modulo" id="selector_modulo" onchange="rellenar_Tema(value)">
-                        <option value="1" selected>M1. ORGANIZACIÓN</option>
-                        <option value="2">M2. HACIENDA</option>
-                        <option value="3">M3. GESTIÓN DEL TERRITORIO</option>
-                        <option value="4">M4. SERVICIOS PÚBLICOS</option>
-                        <option value="5">M5. MEDIO AMBIENTE</option>
-                        <option value="6">M6. DESARROLLO SOCIAL</option>
-                        <option value="7">M7. DESARROLLO ECONÓMICO</option>
-                        <option value="8">M8. GOBIERNO ABIERTO</option>
-
-                    </select>
-            </div>
-    </form>
-    <form style="position: absolute; z-index: 100000; top: 20vh;">
-            <div id="capas-contenido">
-                    <p>Tema:</p>
-                    <select name="Tema" id="selector_tema" onchange="rellenar_Indicador(value)">
-                        <option value="1.1" selected>1.1 Estructura</option>
-                        <option value="1.2">1.2 Planeación</option>
-                        <option value="1.3">1.3 Contraloría</option>
-                        <option value="1.4">1.4 Capacitación</option>
-                    </select>
-            </div>
-    </form>
-    <form style="position: absolute; z-index: 100000; top: 30vh;">
-            <div id="capas-contenido">
-                    <p>Indicador:</p>
-                    <select name="Indicador" id="selector_indicador" onchange="Crear_Mapa(value.split('.')[0],value.split('.')[1],value.split('.')[2],Año).addTo(map)">
-                        <option value="1.1.1" selected>1.1.1 Bando de Policía y Gobierno</option>
-                        <option value="1.1.2">1.1.2 Manuales de Organización</option>
-                        <option value="1.1.3">1.1.3 Tabulador de sueldos con la estructura salarial del personal de la administración pública municipal</option>
-                        <option value="1.1.4">1.1.4 Unidades administrativas existentes en función del número de unidades administrativas promedio</option>
-                        <option value="1.1.5">1.1.5 Personal municipal total por cada 1,000 habitantes</option>
-                        <option value="1.1.6">1.1.6 Nivel salarial del Presidente (a) Municipal</option>
-                        <option value="1.1.7">1.1.7 Participación de las mujeres en puestos de mando medio y superior de la administración pública municipal</option>
-
-                    </select>
-            </div>
-    </form>
-    <form style="position: absolute; z-index: 100000; top: 40vh;">
-            <div id="capas-contenido" style="z-index: 100000;">
-                    <p>Año:</p>
-                    <select name="Año" id="selector_Año" onchange="Crear_Mapa(Modulo,Tema,Indicador,value).addTo(map)">
-                        <option value="20">2020</option>
-                        <option value="21">2021</option>
-                        <option value="22">2022</option>
-                        <option value="23">2023</option>
-                        <option value="24">2024</option>
-                        <option value="25" selected>2025</option>
-                    </select>
-            </div>
-    </form>
-    
-
-    <div id="map"></div>
-
-    <!--<Este es el contenedor canva para la gráfica de barras anual-->
-    <!--
-    <div>
-        <canvas id="myChart0" width= "1500vw" height= "800vh"></canvas>
-    </div> -->
-    <div id="chartModal0" class="modal" style="z-index: 100000000;">
-        <div class="modal-content;">
-            <span class="close" id="closeModal0">&times;</span>
-            <h2 id="indicador_popup0"></h2>
-            <canvas id="myChart0"></canvas>
-        </div>
-    </div>
-    <!--<div>
-        <canvas id="myChart" width= "300vw" height= "300vh"></canvas>
-    </div> -->
-
-    <!-- Modal -->
-    <div id="chartModal" class="modal" style="z-index: 1000000000;">
-        <div class="modal-content">
-            <span class="close" id="closeModal">&times;</span>
-            <h2 id="indicador_popup"></h2>
-            <canvas id="myChart"></canvas>
-        </div>
-    </div>
-
-
-    <!--<Este es el contenedor canva para la gráfica de barras por municipio, módulo y año-->
-    <!--<div>
-        <canvas id="myChart2" width= "600vw" height= "300vh"></canvas>
-    </div>-->
-    <!-- Modal -->
-    <div id="chartModal2" class="modal" style="z-index: 1000000000;">
-        <div class="modal-content">
-            <span class="close" id="closeModal2">&times;</span>
-            <h2 id="indicador_popup2"></h2>
-            <canvas id="myChart2"></canvas>
-        </div>
-    </div>
-    
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script><!--<Este es para el mapa base-->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script><!--<Este es para las gráficas-->
-    <script src="Cargar_data.js"></script> <!-- Aquí cargamos el GeoJSON que tiene los valores de 1 a 6 para cada Indicador de los 84 municipios-->
-    <script> src="Graficas.js"</script>
         
-    <script>
-        try {
-            // Crear mapa y centrarlo (latitud, longitud, zoom)
-            var map = L.map('map').setView([20.5, -98.9], 8);
-
-            // Cargar y mostrar los tiles de OpenStreetMap
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
-                maxZoom: 13
-            }).addTo(map);
-
-            //var marker = L.marker([20.5, -98.9]).addTo(map);
-            //marker.bindPopup("<b>¡Hola!</b><br>Este es un marcador en Hgo.").openPopup();
-
-        } catch (error) {
-            console.error("Error al cargar el mapa:", error);
-        }
-
-//////////////////Variables Globales////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
         //Ya tenemos lo básico, es momento de declarar las variables globales necesarias para después
 
         //Para la gráfica de pastel
@@ -197,26 +16,16 @@
         let Grafica2;
         const ctx2 =document.getElementById('myChart2').getContext('2d');
 
-        const modal2 = document.getElementById("chartModal2");
-        //const openBtn = document.getElementById("openModal");
-        const closeBtn2 = document.getElementById("closeModal2");
-
-
-
         //Para la gráfica por año
         let data0;
         let Grafica0;
         const ctx0 =document.getElementById('myChart0').getContext('2d');
-        const modal0 = document.getElementById("chartModal0");
-        //const openBtn = document.getElementById("openModal");
-        const closeBtn0 = document.getElementById("closeModal0");
 
         //Estas son vitales pues serán las que constantemente dicten la selección en la que estamos
-        let Modulo= "1"; //del 1 al 8
-        let Tema = "1"; // entre el 1 y el 6 (aunque la mayoría tienen menos)
-        let Indicador = "1"; // entre el 1 y el 10 (aunque la mayoría tienen menos)
-        let Año= "25"; //// entre el 20 y el 25 (según el año actual)
-        let Municipio="13048"
+        Modulo= "1"; //del 1 al 8
+        Tema = "1"; // entre el 1 y el 6 (aunque la mayoría tienen menos)
+        Indicador = "1"; // entre el 1 y el 10 (aunque la mayoría tienen menos)
+        Año= "25"; //// entre el 20 y el 25 (según el año actual)
         //Nos vamos al 1.1.1 de 2025 por defecto
 
         //Creemos las variables que vamos a necesitar para el pop up de cada municipio
@@ -228,15 +37,14 @@
         let A24 = 0;
         let A25 = 0;
 
-        //Estas son para gráfica de pastel
+        //
         let v_AñoMpio = 0;
         let a_AñoMpio = 0;
         let r_AñoMpio = 0;
         let nm_AñoMpio = 0;
         let ndR_AñoMpio = 0;
         let nd_AñoMpio = 0;
-
-        //Estas son para la gráfica por Módulo-Año-Municipio
+        //
         let v_ModAñoMpio = 0;
         let a_ModAñoMpio = 0;
         let r_ModAñoMpio = 0;
@@ -252,108 +60,9 @@
         let NoDispo = [];
         let NoMedible = [];
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-        //Todo el trabajo se basará en las sigiuentes clasificaciones:
-        //v = óptimo (verde) = 1
-        //a = en proceso (amarillo) = 2
-        //r = rezago (rojo) = 3
-        //ndR = rezago por no presentar información (rojo obscuro) = 5
-        //nd = información no disponible (gris) = 0
-        //nm = no medible (blanco) = 4
-
-
-        // Función para determinar el color según el valor del indicador
-        const getColor = (value) => {
-            if (value === null || value === undefined) {
-                return 'rgba(0, 0, 0, 0.95)'; // Negro para valores no definidos
-            }
-            switch (value) {
-                case 1: //Optimo
-                return 'rgba(144, 232, 82, 0.8)';  // Verde con 80% de opacidad
-                case 2: //En proceso
-                return 'rgba(241, 255, 64, 0.8)';  // Amarillo con 80% de opacidad
-                case 3: //Rezago
-                return 'rgba(255, 0, 0, 0.8)';     // Rojo con 80% de opacidad
-                case 4://No medible
-                return 'rgba(255, 255, 255, 0.8)'; // Blanco con 80% de opacidad
-                case 0: //Información no disponible
-                return 'rgba(176, 176, 176, 0.8)'; // Gris con 80% de opacidad
-                case 5: //Rezago por no presentar información
-                return 'rgba(102, 45, 45, 0.8)'; // Rojo obscuro con 80% de opacidad
-                default:
-                return 'rgba(0, 0, 0, 0.95)';  // Negro con 95% de opacidad para valores desconocidos
-            }
-        };
-        //Crear_Mapa es la que filtra según nuestra selección
-        Crear_Mapa(Modulo,Tema,Indicador,Año).addTo(map); //Ejecutamos con los valores por defecto
-
-        //La función debe recibir las 4 clasificaciones y luego mostrar el mapa
-        //y obtener el la información necesaria para las gráficas
-
-        //Función para filtrar por columnas (lo defino como función porque se va a ocupar bastante)
-        function filtrarPorCol(data, columnasPermitidas) {
-            return {
-                type: "FeatureCollection",
-                features: data.features.map(f => ({
-                    type: "Feature",
-                    geometry: f.geometry,
-                    properties: Object.fromEntries(
-                        Object.entries(f.properties)
-                            .filter(([key]) => columnasPermitidas.includes(key))
-                    )
-                }))
-            };
-        }
+        //////////////////////////
         
-
-        function Crear_Mapa(M,T,I,A) {
-            //Cada que la función se manda a llamar para crear el mapa reescribirá los valores 
-            //de las variables globales de la selección actual
-            Modulo = M;
-            Tema = T;
-            Indicador = I;
-            Año = A;
-            let Combinacion ="M"+M+"_"+T+"_"+I+"_"+A;
-
-            // Filtramos solo las columnas deseadas
-            const columnas = [Combinacion, "CVEGEO"];
-            const geojsonFiltrado = filtrarPorCol(Data2, columnas);
-
-            return L.geoJSON(geojsonFiltrado, {
-                style: function(feature) {
-                    const valor = feature.properties[Combinacion];
-
-                    return {
-                        fillColor: getColor(valor),
-                        weight: 1,
-                        opacity: 1,
-                        color: 'white',
-                        fillOpacity: 1
-                    };
-                },
-                onEachFeature: function (feature, layer) {
-                    layer.on("click", function () {
-                            Tarjeta_indv(Modulo, Tema, Indicador, Año, feature.properties.CVEGEO);
-                            //Tarjeta_por_Modulo(Modulo, Año, feature.properties.CVEGEO);
-                            //Tarjeta_por_Año(Año);
-                            Municipio = feature.properties.CVEGEO
-                    });
-                    // Mostrar solo las propiedades filtradas
-                    let popupContent = "";
-                    for (let key in feature.properties) {
-                        popupContent += `<b>${key}</b>: ${feature.properties[key]}<br>`;     
-                    }
-                    layer.bindPopup(popupContent);
-                }
-            });
-        }
-
-//////////////////////////////////////////
-
-//La función primera nos dará la información necesaria para nuestro Popup
+        //La función primera nos dará la información necesaria para nuestro Popup
         //Por lo que se debe llamar cada vez que se hace clic sobre un municipio
         function Tarjeta_indv(M,T,I,A,Mpio){ // M de Módulo, T de Tema, I de indicador, A de año y Mpio del municipio (CVEGEO)
             let Semi_combinacion = "M"+M+"_"+T+"_"+I+"_"; //Para poder usar la de varios años
@@ -528,10 +237,23 @@
 
         }
         //Ahora queremos la función que genera y cambia la grafica de pastel
-        function Gráfica_Pastel(Mpio){        
+        function Gráfica_Pastel(Mpio){
+
+
+            const select = document.getElementById("selector_indicador");
+
+            // Obtener el índice seleccionado
+            const indice = select.selectedIndex;
+
+            // Obtener el texto de la opción seleccionada
+            const textoSeleccionado = select.options[indice].text;
+
+            select.textContent = textoSeleccionado;
+
+        
             document.getElementById("indicador_popup").textContent = Indicador;
             modal.style.display = "block";
-            data = {
+            let data = {
             labels: ['Optimos', 'En Proceso', 'Rezago','Rezago por no información', 'No disponible', 'No medible'],
             datasets: [
                 {
@@ -582,7 +304,6 @@
 
         //Ahora queremos la función que genera y cambia la grafica de pastel
         function Gráfica_Barras1(Mpio){
-            modal2.style.display = "block";
             data2 = {
             labels: ['Optimos', 'En Proceso', 'Rezago','Rezago por no información', 'No disponible', 'No medible'],
             datasets: [
@@ -633,23 +354,12 @@
                 },
             });
         }
-        closeBtn2.onclick = function() {
-            modal2.style.display = "none";
-        };
-
-        //Se cierrar si se hace clic afuera
-        window.onclick = function(event) {
-            if (event.target === modal2) {
-                modal2.style.display = "none";
-            }
-        };
 
 
 
 
         //Ahora queremos la función que genera y cambia la grafica de pastel
         function Gráfica_Barras0(A){
-            modal0.style.display = "flex";
             data0 = {
             labels: [
                 "Acatlán",
@@ -783,8 +493,7 @@
                 type: 'bar',
                 data: data0,
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: false,
                     scales: {
                         y: {
                             beginAtZero: true
@@ -805,43 +514,4 @@
                 },
             });
         }
-        closeBtn0.onclick = function() {
-            modal0.style.display = "none";
-        };
 
-        //Se cierrar si se hace clic afuera
-        window.onclick = function(event) {
-            if (event.target === modal0) {
-                modal0.style.display = "none";
-            }
-        };
-
-
-///////////////////////////
-        //Aquí leemos el excel que contiene nuestras clasificaciones como una lista de listas para más easy
-        let Lista_Descriptor = [];
-        fetch('Descriptor2.xlsx') // Debe estar accesible públicamente (Qué se supone que significa eso?)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("No se pudo cargar el archivo Excel");
-                }
-                return response.arrayBuffer();
-            })
-            .then(data => {
-                try {
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    Lista_Descriptor = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    //console.log("Contenido del Excel:", Lista_Descriptor);
-                } catch (error) {
-                    console.error("Error al procesar el Excel:", error);
-                }
-            })
-            .catch(err => console.error("Error al cargar el archivo:", err));
-
-
-    </script>
-
-</body>
-</html>
