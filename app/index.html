@@ -9,7 +9,7 @@
     <style>
         #map {
             height: 100vh;
-            width: 100wh;
+            width: 100vw;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script> <!-- Para leer excel -->
@@ -73,15 +73,12 @@
 
 
 </style>
-<body style="height: 100vh; width: 100wh;">
+<body style="height: 100vh; width: 100wh;margin: 0;padding: 0;">
 
     <button id ="Grafica_ModAñoMpio" style="display: none; position: absolute; top: 50px; right: 150px; z-index: 10000;" onclick="Tarjeta_por_Modulo(Modulo,Año,Municipio)">MAM </button>
     <button id ="Grafica_Año" style="display: none; position: absolute; top: 100px; right: 150px; z-index: 10000;" onclick="Tarjeta_por_Año(Año)">Anual </button>
 
-    <header style="height: 5vh;">
-       <b>By Enrique. </b><i>Consulta y contrasta el estatus de los indicadores de desempeño municipal a través de un mapa interactivo</i>
-    </header>
-    <form style="position: absolute; z-index: 100000; top: 10vh;">
+    <form style="position: absolute; z-index: 100000; top: 0vh;padding: 0px;">
             <div id="capas-contenido">
                     <!--<p>Módulo:</p>-->
                     <select name="Modulo" id="selector_modulo" onchange="rellenar_Tema(value)">
@@ -97,7 +94,7 @@
                     </select>
             </div>
     </form>
-    <form style="position: absolute; z-index: 100000; top: 20vh;">
+    <form style="position: absolute; z-index: 100000; top: 0vh;">
             <div id="capas-contenido">
                     <!--<p>Tema:</p>-->
                     <select name="Tema" id="selector_tema" onchange="rellenar_Indicador(value)">
@@ -108,7 +105,7 @@
                     </select>
             </div>
     </form>
-    <form style="position: absolute; z-index: 100000; top: 30vh;">
+    <form style="position: absolute; z-index: 100000; top: 0vh;">
             <div id="capas-contenido">
                     <!--<p>Indicador:</p>-->
                     <select name="Indicador" id="selector_indicador" onchange="Crear_Mapa(value.split('.')[0],value.split('.')[1],value.split('.')[2],Año)">
@@ -123,7 +120,7 @@
                     </select>
             </div>
     </form>
-    <form style="position: absolute; z-index: 100000; top: 40vh;">
+    <form style="position: absolute; z-index: 100000; top: 0vh;">
             <div id="capas-contenido" style="z-index: 100000;">
                     <!--<p>Año:</p>-->
                     <select name="Año" id="selector_Año" onchange="Crear_Mapa(Modulo,Tema,Indicador,value)">
@@ -185,7 +182,7 @@
     <script>
         try {
             // Crear mapa y centrarlo (latitud, longitud, zoom)
-            var map = L.map('map').setView([20.5, -98.9], 8);
+            var map = L.map('map',{zoomControl: false }).setView([20.5, -98.9], 8);
 
             // Cargar y mostrar los tiles de OpenStreetMap
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
