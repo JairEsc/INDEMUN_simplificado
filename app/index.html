@@ -15,12 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script> <!-- Para leer excel -->
 </head>
 <style>
-    .panel-selectores select {
-        display: block;
-        width: 100%;
-        margin-bottom: 10px;
-        min-width: 10px;
-    }
+    
     .recuadros{
         width: 45px; 
         height: 45px; 
@@ -33,7 +28,7 @@
         font-weight: bold;
         color: #ffffff;
     }
-        .buscador_Mpio {
+    .buscador_Mpio {
         position: absolute;
         left: 50vw;
         transform: translateX(-50%); /* A CSS no hay que tenerle miedo, hay que tenerle respeto*/
@@ -307,8 +302,7 @@
             }
         };
 
-        //Crear_Mapa es la que filtra según nuestra selección
-        Crear_Mapa(Modulo,Tema,Indicador,Año) //Ejecutamos con los valores por defecto
+        
 
         //La función debe recibir las 4 clasificaciones y luego mostrar el mapa
         //y obtener el la información necesaria para las gráficas
@@ -340,41 +334,45 @@
                 //Modificación: Ahora se debe buscar en Data2 pues el "e" está filtrado solo al año del select, por lo que 
                 //los demás años aparecerían en negro, entonces hay que buscar en el feature collectiom original
 
-                //Buscamos primero cual es la CVEGEO del municipio que ACTUALMENTE tiene el popup
-                const Mpio_CVEGEO = e.popup._source.feature.properties.CVEGEO;
+                //Buscamos primero cual es la NOMGEO del municipio que ACTUALMENTE tiene el popup
+                const Mpio_NOMGEO = e.popup._source.feature.properties.NOMGEO;
 
                 //Ahora nos vamos al Data2 que viene del GeoJDON original y buscamos ese municipio
-                const Mpio_Act = Data2.features.find(f => f.properties.CVEGEO === Mpio_CVEGEO).properties;
+                const Mpio_Act = Data2.features.find(f => f.properties.NOMGEO === Mpio_NOMGEO).properties;
 
                 
                 for(const año of ["20","21","22","23","24","25"]){
                     const recuadro25 = popupNode.querySelector('#recuadro_A'+año);
-                    if (recuadro25) {
+                        if (año === Año) {  //O sea que se fija en el que corresponda al año seleccionado
+                            recuadro25.style.border = "2px solid #000000";
+                            recuadro25.style.transform = "scale(1.15)";
+                            recuadro25.style.boxShadow = "0 0 8px rgba(0,0,0,0.5)";
+                            //recuadro25.style.zIndex = "10";
+                        }
                         let valor25 = Mpio_Act["M" + Modulo + "_" + Tema + "_" + Indicador + "_"+año];
                         recuadro25.style.backgroundColor = getColor(valor25);
 
                         //Como puse el texto blanco hay que checar que siempre se vea bien
                         //Lo puse blanco porque el color por defecto del recuadro es el que tienepor defecto la
                         //función del getColor, que es negro, que sale cuando NO encuentra el dato de ese año
-                        if (valor25 == 2|| valor25 == 4) { //Es decir, si el color de el indicador en ese año es blanco o amarillo
+                        if (valor25==2|| valor25==4 || valor25==0){ //Es decir, si el color de el indicador en ese año es blanco o amarillo
                             recuadro25.style.color = "black";
                         }
-                    }
                 }
 
                 //TITULO del popup
                 //Solo se me ocurrió acceder al select y extraer el TEXTO que corresponde a la descripción del Indicador
-                const textoSeleccionado = document.getElementById('selector_indicador').options[document.getElementById('selector_indicador').selectedIndex].text;
+                const Indicador_seleccionado = document.getElementById('selector_indicador').options[document.getElementById('selector_indicador').selectedIndex].text;
                 const titulo = popupNode.querySelector('#indicador_popup');
                 //console.log(textoSeleccionado);
                 if(titulo){
-                    titulo.textContent =textoSeleccionado;
+                    titulo.textContent =Indicador_seleccionado;
                 }
 
                 // Por lo visto debe haber un pequeño momento para que Chart tenga tiempo, o si no la gráfica no
                 // alcanza a colocarse en el popup y se ve vacío
                 setTimeout(() => {
-                    Tarjeta_indv(Modulo, Tema, Indicador, Año, Mpio_CVEGEO, CanvasID);
+                    Tarjeta_indv(Modulo, Tema, Indicador, Año, Mpio_NOMGEO, CanvasID);
                 }, 100);
             }
         });
@@ -407,8 +405,8 @@
             div.style.color = "#333";
             div.style.width = "12vw";
             div.style.maxWidth = "50vw";
-            div.style.marginBottom = "6vh";
-            div.style.marginRight = "1vw";
+            //div.style.marginBottom = "6vh";
+            //div.style.marginRight = "1vw";
             
             return div;
         };
@@ -426,18 +424,28 @@
                     <input list="municipios" id="input-busqueda" placeholder="Buscar municipio:" 
                         style="padding: 10px 15px; border-radius: 20px; border: none; width: 15vw; outline: none; font-size: 14px;">
                     <datalist id="municipios">
-                        ${Data2.features.map(f => `<option value="${f.properties.CVEGEO}">`).join('')}
+                        ${Data2.features.map(f => `<option value="${f.properties.NOMGEO}">`).join('')}
                     </datalist>
                 </div>
             `;
-            div.style.marginBottom = "6vh";
+            //div.style.marginBottom = "6vh";
             div.querySelector('#input-busqueda').onchange = function(e) {
                 const clave = e.target.value;
                 Mapa_Act.eachLayer(layer => {
-                    if (layer.feature.properties.CVEGEO === clave) {
-                        map.fitBounds(layer.getBounds());
-                        layer.openPopup();
-                    }
+                    if (layer.feature.properties.NOMGEO === clave) {
+                        //Esto es lo que hace zoom
+                        map.flyToBounds(layer.getBounds(), {
+                            padding: [100, 100], //Es un margen que le da al feature con el zoom
+                            duration: 0.5
+                        });
+                        //y ya que no se mueva la pantalla
+                        map.once('moveend', function() {
+                            layer.fireEvent('click');
+                        });
+
+                        //Está muy útil para ir viajando entre municipios
+                        e.target.value = "";
+                    };
                 });
             };
 
@@ -445,7 +453,78 @@
             return div;
         };
         buscador.addTo(map);
+
+        //Ahora hay que hacer el "hover"
+        const Hover = L.control({ position: 'bottomright' });
+
+        Hover.onAdd = function (map) {
+            this._div = L.DomUtil.create('div'); //Todos los días le rezo a DomUtil
+                                                //Como la vamos a partir en dos el this ayuda a guardarlo
+            this.update();
+            return this._div;
+        };
+
+        Hover.update = function (props,columna) {
+            if (props) {
+                const valor = props[columna]; 
+                this._div.style.display = "block";
+
+                this._div.innerHTML = `
+                    <div style="display: flex; align-items: center; background: white; padding: 10px 15px; border-radius: 25px; box-shadow: 0 0 10px rgba(0,0,0,0.2); margin-bottom: 10px;">
+                        <div style="background: ${getColor(valor)}; width: 18px; height: 18px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.2); margin-right: 12px; flex-shrink: 0;"></div>
+                        <div style="display: flex; flex-direction: column;">
+                            <strong style="font-size: 14px; color: #333; line-height: 1.2;">${props.NOMGEO}</strong>
+                        </div>
+                    </div>
+                `;
+                this._div.style.width = "15vw";
+                this._div.style.maxWidth = "50vw";
+                
+            }
+        };
+
+        Hover.addTo(map);
         //
+        //Ahora el recuadro del título, y obvi, vamos a copiar y pegar la estructura de las anteriores y el bendito 
+        //DomUtil
+        //Funcionan muy bien especialmente por el zoom, igual que en el R
+        const Titulo = L.control({ position: 'topright' });
+
+        Titulo.onAdd = function() {
+            this._div = L.DomUtil.create('div', 'panel-titulo'); 
+            return this._div;
+        };
+
+        Titulo.update = function(Año) {
+            if (Año) {
+                let Indicador_seleccionado=document.getElementById('selector_indicador').options[document.getElementById('selector_indicador').selectedIndex].text;
+                //let Solo_Indicador= Indicador_seleccionado.split('.')[3];
+                //Para poder extraer solo el texto sin los indices que le puse al descriptor tuve que pedir ayuda tal cual
+                //El poderosismo chat dice que:
+                // /^[\d.\s]+/ significa:
+                // ^ : Empieza a buscar desde el inicio
+                // [\d.\s] : Busca dígitos (\d), puntos (.) o espacios (\s)
+                // + : Que se repitan una o más veces
+                let Solo_Indicador = Indicador_seleccionado.replace(/^[\d.\s]+/, "");
+                console.log(Solo_Indicador);
+                this._div.innerHTML = `
+                    <div style="background: white; padding: 12px 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.2); ">
+                        <h2 style="margin: 0; font-size: 16px; color: #2c3e50; text-transform: uppercase;">
+                            <strong>Indicador:</strong> ${Solo_Indicador}
+                        </h2>
+                        <div style="display: flex; align-items: center; margin-top: 5px;">
+                            <span style="background: #404040; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; margin-right: 10px;">
+                                Año 20${Año}
+                            </span>
+                        </div>
+                    </div>
+                `;
+                this._div.style.minWidth = "15vw";
+                this._div.style.maxWidth = "70vw";
+            }
+        };
+
+        Titulo.addTo(map);
         function Crear_Mapa(M,T,I,A) {
             //Cada que la función se manda a llamar para crear el mapa reescribirá los valores 
             //de las variables globales de la selección actual
@@ -456,13 +535,13 @@
             let Combinacion ="M"+M+"_"+T+"_"+I+"_"+A;
 
             // Filtramos solo las columnas deseadas
-            const columnas = [Combinacion, "CVEGEO"];
+            const columnas = [Combinacion, "NOMGEO"];
             const geojsonFiltrado = filtrarPorCol(Data2, columnas);
 
             if (Mapa_Act) {
                 map.removeLayer(Mapa_Act);
             }
-
+            Titulo.update(A); //No ocupa más cosas, así que puede ir aquí o un poco antes creo
             //return 
             Mapa_Act = L.geoJSON(geojsonFiltrado, {
                 style: function(feature) {
@@ -477,39 +556,64 @@
                     };
                 },
                 onEachFeature: function (feature, layer) {
+                    //
+                    // EVENTO 1: Al pasar el mouse por encima
+                    layer.on("mouseover", function (e) {
+                        const hovLayer = e.target;
+                        
+
+                        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                            hovLayer.bringToFront();
+                        }
+
+                        // Llamamos a la actualización del panel
+                        Hover.update(hovLayer.feature.properties,Combinacion);
+                    });
+
+
+                    //
                     layer.on("click", function () {
-                        //Tarjeta_indv(Modulo, Tema, Indicador, Año, feature.properties.CVEGEO);
-                        //Tarjeta_por_Modulo(Modulo, Año, feature.properties.CVEGEO);
+                        //Tarjeta_indv(Modulo, Tema, Indicador, Año, feature.properties.NOMGEO);
+                        //Tarjeta_por_Modulo(Modulo, Año, feature.properties.NOMGEO);
                         //Tarjeta_por_Año(Año);
-                        //Municipio = feature.properties.CVEGEO
+                        //Municipio = feature.properties.NOMGEO
                         // 1. Creamos un contenedor temporal para el popup
                         const contenedor = document.createElement('div');
                         contenedor.style.cssText = "width:300px; min-height:350px; display:block;"; 
                         contenedor.innerHTML = `
-                            <div>
-                            <h3 id="indicador_popup" style="text-align:center; font-size:14px; margin-bottom:10px;">AAA</h3>
-                            <h4 id="indicador_popup" style="font-size:11px; margin-bottom:10px;">Histórico:</h>
-                            <div id="contenedor_historico" style="display: flex; justify-content: center; gap: 5px; margin-bottom: 15px;">
-                            <div id="recuadro_A20" title="Año 2020" class="recuadros"">2020</div>
-                            <div id="recuadro_A21" title="Año 2021" class="recuadros"">2021</div>
-                            <div id="recuadro_A22" title="Año 2022" class="recuadros"">2022</div>
-                            <div id="recuadro_A23" title="Año 2023" class="recuadros"">2023</div>
-                            <div id="recuadro_A24" title="Año 2024" class="recuadros"">2024</div>
-                            <div id="recuadro_A25" title="Año 2025" class="recuadros"">2025</div>
+                            <div style="min-width: 220px; text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                                <h2 style="margin: 0 0 5px 0; font-size: 20px; color: #2c3e50; font-weight: 800; text-transform: uppercase;">
+                                    ${feature.properties.NOMGEO}
+                                </h2>
+            
+                                <hr style="border: 0; height: 2px; background: linear-gradient(to right, transparent, #404040, transparent); margin: 10px 0 15px 0;">
+
+                                <h3 id="indicador_popup" style="text-align:center; font-size:14px; margin-bottom:10px;">No Carga</h3>
+                                <h4 id="indicador_popup" style="font-size:11px; margin-bottom:10px;"><strong>Histórico:</strong></h4>
+                                <div id="contenedor_historico" style="display: flex; justify-content: center; gap: 5px; margin-bottom: 15px;">
+                                    <div id="recuadro_A20" title="Año 2020" class="recuadros"">2020</div>
+                                    <div id="recuadro_A21" title="Año 2021" class="recuadros"">2021</div>
+                                    <div id="recuadro_A22" title="Año 2022" class="recuadros"">2022</div>
+                                    <div id="recuadro_A23" title="Año 2023" class="recuadros"">2023</div>
+                                    <div id="recuadro_A24" title="Año 2024" class="recuadros"">2024</div>
+                                    <div id="recuadro_A25" title="Año 2025" class="recuadros"">2025</div>
+                                </div>
+                                <canvas id="canvasPopup" width="300" height="300" style="display:block;"></canvas>
                             </div>
-                            <canvas id="canvasPopup" width="300" height="300" style="display:block;"></canvas>
-                            </div>
-                        `;
+                        `;//Curiosamente ponerle el título por defecto como "No Carga" ayuda, pues si todo sale bien debería reescribirse
+                        //Pero por ejemplo si se pierde la conexión entonces sale ese que estápor defecto
                         layer.bindPopup(contenedor).openPopup();
 
                     });
                 }
             }).addTo(map);
         }
+        //Crear_Mapa es la que filtra según nuestra selección
+        Crear_Mapa(Modulo,Tema,Indicador,Año) //Ejecutamos con los valores por defecto
         ///NEW 3
         const Caja = L.control({ position: 'topleft' });
         Caja.onAdd = function (map) {
-            const div = L.DomUtil.create('div', 'panel-selectores');
+            const div = L.DomUtil.create('div'); //*Inserte stciker espiritual*
 
             div.style.padding = "12px";
             div.style.boxShadow = "0 0 15px rgb(0,0,0,0.5)";
@@ -518,10 +622,11 @@
             div.style.maxWidth = "35vw";
 
             div.style.background = "white";
+            div.style.borderRadius = "10px"; //Aqui se redondea
 
             const crearGrupo = (textoLabel, SelectID) => {
                 const grupo = document.createElement('div');
-                grupo.style.marginBottom = "10px";
+                grupo.style.marginBottom = "15px";
                 
                 const label = document.createElement('label');
                 label.textContent = textoLabel;
@@ -534,6 +639,7 @@
                     grupo.appendChild(select);
                     select.style.width = "100%";
                     select.style.display = "block";
+                    select.style.borderRadius = "7px";
                 }
                 return grupo;
             };
@@ -552,15 +658,15 @@
 
 //La función primera nos dará la información necesaria para nuestro Popup
         //Por lo que se debe llamar cada vez que se hace clic sobre un municipio
-        function Tarjeta_indv(M,T,I,A,Mpio,ID){ // M de Módulo, T de Tema, I de indicador, A de año y Mpio del municipio (CVEGEO)
+        function Tarjeta_indv(M,T,I,A,Mpio,ID){ // M de Módulo, T de Tema, I de indicador, A de año y Mpio del municipio (NOMGEO)
             let Semi_combinacion = "M"+M+"_"+T+"_"+I+"_"; //Para poder usar la de varios años
             const columnas = [Semi_combinacion+"20", Semi_combinacion+"21", Semi_combinacion+"22",
-                Semi_combinacion+"23", Semi_combinacion+"24",Semi_combinacion+"25", "CVEGEO"]; //Hasta el año actual
+                Semi_combinacion+"23", Semi_combinacion+"24",Semi_combinacion+"25", "NOMGEO"]; //Hasta el año actual
 
             //Y la filtramos
             const geojsonFiltrado = filtrarPorCol(Data2, columnas);
             let geojsonFiltrado2 = geojsonFiltrado.features.find(
-                f => f.properties.CVEGEO === Mpio
+                f => f.properties.NOMGEO === Mpio
             );
             
             //Estas son del histórico de cada municipio
@@ -579,7 +685,7 @@
             A25=geojsonFiltrado2.properties[Semi_combinacion+"25"]
 
             let geojsonFiltrado3 = Data2.features.find(
-                f => f.properties.CVEGEO === Mpio
+                f => f.properties.NOMGEO === Mpio
             );
 
             //Estos solo dependen del Año y el municipio
@@ -616,13 +722,13 @@
         //Por lo que se debe mandar a llamar cuando uno de esos tres filtros cambie
         function Tarjeta_por_Modulo(M,A,Mpio){
             let geojsonFiltrado = Data2.features.find(
-                f => f.properties.CVEGEO === Mpio
+                f => f.properties.NOMGEO === Mpio
             );
-            let columnas_modulo= Object.keys(geojsonFiltrado.properties).filter(col => col.split("_")[0] === "M"+M && col.split("_")[3] === A).concat(["CVEGEO"]);
+            let columnas_modulo= Object.keys(geojsonFiltrado.properties).filter(col => col.split("_")[0] === "M"+M && col.split("_")[3] === A).concat(["NOMGEO"]);
             const geojsonFiltrado2 = filtrarPorCol(Data2, columnas_modulo);
 
             let geojsonFiltrado3 = geojsonFiltrado2.features.find(
-                f => f.properties.CVEGEO === Mpio
+                f => f.properties.NOMGEO === Mpio
             );
             let modulos_año= columnas_modulo.map(col => geojsonFiltrado3.properties[col]);
 
@@ -649,7 +755,7 @@
         }
         function Tarjeta_por_Año(A){
             let geojsonFiltrado = Data2.features.find(
-                f => f.properties.CVEGEO === 13001 //No importa, esto solo es por mi facilidad
+                f => f.properties.NOMGEO === 13001 //No importa, esto solo es por mi facilidad
             );
 
             //Debemos reiniciarlos para evitar que estén guardando de anteriores
@@ -662,7 +768,7 @@
 
             //La idea es que por cada municipio (feature) verifique cuantos optimos tiene, cuantos en proceso, etc.
             //Y solo depende del año, por lo que hay que cortar a las columnas que terminan en ese año
-            let columnas_modulo= Object.keys(geojsonFiltrado.properties).filter(col => col.split("_")[3] === A).concat(["CVEGEO"]);
+            let columnas_modulo= Object.keys(geojsonFiltrado.properties).filter(col => col.split("_")[3] === A).concat(["NOMGEO"]);
             const geojsonFiltrado2 = filtrarPorCol(Data2, columnas_modulo);
             geojsonFiltrado2.features.forEach(feature => {
                 // contar valores iguales a 1
