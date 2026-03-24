@@ -286,17 +286,17 @@
             }
             switch (value) {
                 case 1: //Optimo
-                return 'rgba(112, 214, 41, 0.8)';  // Verde con 80% de opacidad //ORIGINAL: 144,232,82
+                return '#54AB18';  // Verde con 80% de opacidad //ORIGINAL: 144,232,82
                 case 2: //En proceso
-                return 'rgba(241, 255, 64, 0.8)';  // Amarillo con 80% de opacidad
+                return '#FFF540';  // Amarillo con 80% de opacidad
                 case 3: //Rezago
-                return 'rgba(255, 0, 0, 0.8)';     // Rojo con 80% de opacidad
+                return '#FF0000';     // Rojo con 80% de opacidad
                 case 4://No medible
-                return 'rgba(255, 255, 255, 0.8)'; // Blanco con 80% de opacidad
+                return '#757575'; // Blanco con 80% de opacidad
                 case 0: //Información no disponible
-                return 'rgba(176, 176, 176, 0.8)'; // Gris con 80% de opacidad
+                return '#B0B0B0'; // Gris con 80% de opacidad
                 case 5: //Rezago por no presentar información
-                return 'rgba(102, 45, 45, 0.8)'; // Rojo obscuro con 80% de opacidad
+                return '#662D2D'; // Rojo obscuro con 80% de opacidad
                 default:
                 return 'rgba(0, 0, 0, 0.95)';  // Negro con 95% de opacidad para valores desconocidos
             }
@@ -369,12 +369,18 @@
                     titulo.textContent =Indicador_seleccionado;
                 }
 
-                // Por lo visto debe haber un pequeño momento para que Chart tenga tiempo, o si no la gráfica no
-                // alcanza a colocarse en el popup y se ve vacío
+                //Por lo visto debe haber un pequeño momento para que Chart tenga tiempo, o si no la gráfica no
+                //alcanza a colocarse en el popup y se ve vacío
                 setTimeout(() => {
                     Tarjeta_indv(Modulo, Tema, Indicador, Año, Mpio_NOMGEO, CanvasID);
                 }, 100);
             }
+        });
+        map.on('zoomend', function() {
+            const etiquetas = document.querySelectorAll('.etiqueta');
+            etiquetas.forEach(nombre => {
+                nombre.style.display = map.getZoom()<11? 'none' : 'block';
+            });
         });
 
         //Ahora vamos a hacer la semaforización
@@ -459,12 +465,12 @@
 
         Hover.onAdd = function (map) {
             this._div = L.DomUtil.create('div'); //Todos los días le rezo a DomUtil
-                                                //Como la vamos a partir en dos el this ayuda a guardarlo
+                                                //Como la vamos a partir en dos el this._ ayuda a guardarlo
             this.update();
             return this._div;
         };
 
-        Hover.update = function (props,columna) {
+        Hover.update = function (props,columna) { //Ahora usamos esta de .update que es lo que ayuda a actualizar los contenidos
             if (props) {
                 const valor = props[columna]; 
                 this._div.style.display = "block";
@@ -491,38 +497,42 @@
         const Titulo = L.control({ position: 'topright' });
 
         Titulo.onAdd = function() {
-            this._div = L.DomUtil.create('div', 'panel-titulo'); 
+            this._div = L.DomUtil.create('div'); //Todos los días le rezo a DomUtil
+                                                //Como la vamos a partir en dos el this._ ayuda a guardarlo
             return this._div;
         };
 
-        Titulo.update = function(Año) {
+        Titulo.update = function(Año) { //Ahora usamos esta de .update que es lo que ayuda a actualizar los contenidos
             if (Año) {
                 let Indicador_seleccionado=document.getElementById('selector_indicador').options[document.getElementById('selector_indicador').selectedIndex].text;
-                //let Solo_Indicador= Indicador_seleccionado.split('.')[3];
+                //let Solo_Indicador= Indicador_seleccionado.split('.')[2]
                 //Para poder extraer solo el texto sin los indices que le puse al descriptor tuve que pedir ayuda tal cual
                 //El poderosismo chat dice que:
                 // /^[\d.\s]+/ significa:
                 // ^ : Empieza a buscar desde el inicio
                 // [\d.\s] : Busca dígitos (\d), puntos (.) o espacios (\s)
                 // + : Que se repitan una o más veces
-                let Solo_Indicador = Indicador_seleccionado.replace(/^[\d.\s]+/, "");
+                let Solo_Indicador = Indicador_seleccionado.replace(/^[\d.\s]+/, ""); //Me gusta más en R
                 console.log(Solo_Indicador);
                 this._div.innerHTML = `
-                    <div style="background: white; padding: 12px 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.2); ">
-                        <h2 style="margin: 0; font-size: 16px; color: #2c3e50; text-transform: uppercase;">
+                    <div style="background: 'rgb(98,17,50)'; padding: 12px 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.2); ">
+                        <h2 style="margin: 0; font-size: 16px; color: #FFFFFF; text-transform: uppercase;">
                             <strong>Indicador:</strong> ${Solo_Indicador}
                         </h2>
                         <div style="display: flex; align-items: center; margin-top: 5px;">
-                            <span style="background: #404040; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; margin-right: 10px;">
+                            <h3 style="color: white; border-radius: 4px; font-weight: bold; font-size: 18px; margin-right: 10px;">
                                 Año 20${Año}
-                            </span>
+                            </h3>
                         </div>
                     </div>
                 `;
                 this._div.style.minWidth = "15vw";
                 this._div.style.maxWidth = "70vw";
+                this._div.style.background="rgb(98,17,50)";
             }
         };
+        //Los logos
+        const Logo_Planeacion = L.control({ position: 'bottomleft' });
 
         Titulo.addTo(map);
         function Crear_Mapa(M,T,I,A) {
@@ -551,27 +561,21 @@
                         fillColor: getColor(valor),
                         weight: 1,
                         opacity: 1,
-                        color: 'white',
-                        fillOpacity: 1
+                        color: 'black',
+                        fillOpacity: 1,
                     };
                 },
                 onEachFeature: function (feature, layer) {
                     //
-                    // EVENTO 1: Al pasar el mouse por encima
+                    //feature.style.borderColor='#757575';
+                    //Aquí es cuando le pasamos por encima el cursor a algún feature
                     layer.on("mouseover", function (e) {
                         const hovLayer = e.target;
-                        
 
-                        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-                            hovLayer.bringToFront();
-                        }
-
-                        // Llamamos a la actualización del panel
+                    //Y se actualiza el hover
                         Hover.update(hovLayer.feature.properties,Combinacion);
                     });
 
-
-                    //
                     layer.on("click", function () {
                         //Tarjeta_indv(Modulo, Tema, Indicador, Año, feature.properties.NOMGEO);
                         //Tarjeta_por_Modulo(Modulo, Año, feature.properties.NOMGEO);
@@ -605,11 +609,21 @@
                         layer.bindPopup(contenedor).openPopup();
 
                     });
+                    layer.bindTooltip(feature.properties.NOMGEO, {
+                        permanent: true,   //si pero luego no
+                        direction: "center",
+                        className: "etiqueta",
+                    });
                 }
             }).addTo(map);
         }
         //Crear_Mapa es la que filtra según nuestra selección
         Crear_Mapa(Modulo,Tema,Indicador,Año) //Ejecutamos con los valores por defecto
+
+        document.querySelectorAll('.etiqueta').forEach(nombre => {
+            nombre.style.display='none';
+        });
+
         ///NEW 3
         const Caja = L.control({ position: 'topleft' });
         Caja.onAdd = function (map) {
@@ -617,11 +631,12 @@
 
             div.style.padding = "12px";
             div.style.boxShadow = "0 0 15px rgb(0,0,0,0.5)";
+            div.style.backgroundColor="#000000";
 
             div.style.width = "20vw";
             div.style.maxWidth = "35vw";
 
-            div.style.background = "white";
+            div.style.background = "rgb(98,17,50)";
             div.style.borderRadius = "10px"; //Aqui se redondea
 
             const crearGrupo = (textoLabel, SelectID) => {
@@ -630,8 +645,14 @@
                 
                 const label = document.createElement('label');
                 label.textContent = textoLabel;
-                label.style.fontSize = "11px";
+                label.style.fontSize = "15px";
                 label.style.color = "#555";
+                label.style.color="white";
+                //label.style.font-weight="bold";
+                label.style.fontWeight = "bold";
+                //label.style.fontFamily ="monserrat";
+                label.style.fontFamily = "'Montserrat', sans-serif";
+
 
                 const select = document.getElementById(SelectID);
                 if (select) {
@@ -640,6 +661,7 @@
                     select.style.width = "100%";
                     select.style.display = "block";
                     select.style.borderRadius = "7px";
+                    select.style.fontFamily = "'Montserrat', sans-serif";
                 }
                 return grupo;
             };
@@ -669,21 +691,7 @@
                 f => f.properties.NOMGEO === Mpio
             );
             
-            //Estas son del histórico de cada municipio
-            //Y ya no se ocupan pipipipipi
-            console.log(geojsonFiltrado2.properties[Semi_combinacion+"20"]); //
-            A20=geojsonFiltrado2.properties[Semi_combinacion+"20"]
-            console.log(geojsonFiltrado2.properties[Semi_combinacion+"21"]); //
-            A21=geojsonFiltrado2.properties[Semi_combinacion+"21"]
-            console.log(geojsonFiltrado2.properties[Semi_combinacion+"22"]); //
-            A22=geojsonFiltrado2.properties[Semi_combinacion+"22"]
-            console.log(geojsonFiltrado2.properties[Semi_combinacion+"23"]); //
-            A23=geojsonFiltrado2.properties[Semi_combinacion+"23"]
-            console.log(geojsonFiltrado2.properties[Semi_combinacion+"24"]); //
-            A24=geojsonFiltrado2.properties[Semi_combinacion+"24"]
-            console.log(geojsonFiltrado2.properties[Semi_combinacion+"25"]); //
-            A25=geojsonFiltrado2.properties[Semi_combinacion+"25"]
-
+            
             let geojsonFiltrado3 = Data2.features.find(
                 f => f.properties.NOMGEO === Mpio
             );
@@ -855,12 +863,12 @@
                 
                 data: [v_AñoMpio,a_AñoMpio,r_AñoMpio,ndR_AñoMpio,nd_AñoMpio,nm_AñoMpio],
                 backgroundColor: [
-                    '#90E852',
-                    '#F1FF40',
+                    '#54AB18',
+                    '#FFF540',
                     '#FF0000',
                     '#662D2D',
                     '#B0B0B0',
-                    '#FFFFFF'
+                    '#757575'
                 ]
                 }
             ]
@@ -897,20 +905,20 @@
                 label: 'Óptimo',
                 data: [v_ModAñoMpio,a_ModAñoMpio,r_ModAñoMpio,ndR_ModAñoMpio,nd_ModAñoMpio,nm_ModAñoMpio],
                 backgroundColor: [
-                    '#90E852',
-                    '#F1FF40',
+                    '#54AB18',
+                    '#FFF540',
                     '#FF0000',
                     '#662D2D',
                     '#B0B0B0',
-                    '#FFFFFF'
+                    '#757575'
                 ],
                 borderColor: [
-                    '#90E852',
-                    '#F1FF40',
+                    '#54AB18',
+                    '#FFF540',
                     '#FF0000',
                     '#662D2D',
                     '#B0B0B0',
-                    '#000000'
+                    '#757575'
                 ],
                 borderWidth: 1
                 }]
@@ -1045,14 +1053,14 @@
                 {
                 label: 'Optimos',
                 data: Optimos,
-                backgroundColor:'#90E852',
-                borderColor: '#90E852'
+                backgroundColor:'#54AB18',
+                borderColor: '#54AB18'
                 },
                 {
                 label: 'En Proceso',
                 data: EnProcesos,
-                backgroundColor:'#F1FF40',
-                borderColor: '#F1FF40'
+                backgroundColor:'#FFF540',
+                borderColor: '#FFF540'
                 },
                 {
                 label: 'Rezago',
@@ -1075,8 +1083,8 @@
                 {
                 label: 'No medible',
                 data: NoMedible,
-                backgroundColor: '#FFFFFF',
-                borderColor: '#000000'
+                backgroundColor: '#757575',
+                borderColor: '#757575'
                 },
             ]
             };
