@@ -109,7 +109,7 @@
     <script>
         try {
             // Crear mapa y centrarlo (latitud, longitud, zoom)
-            var map = L.map('map',{zoomControl: false }).setView([20.5, -98.9], 8);
+            var map = L.map('map',{zoomControl: false }).setView([20.5, -98.9], 9);
 
             // Cargar y mostrar los tiles de OpenStreetMap
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -564,9 +564,11 @@
                     });
                 }
             }).addTo(map);
-            document.querySelectorAll('.etiqueta').forEach(nombre => {
-            nombre.style.display='none';
-        });
+            if(map.getZoom()<11){
+                document.querySelectorAll('.etiqueta').forEach(nombre => {
+                    nombre.style.display='none';
+                });
+            }
 
         }
         //Crear_Mapa es la que filtra según nuestra selección
