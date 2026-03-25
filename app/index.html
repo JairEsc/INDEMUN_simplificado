@@ -44,16 +44,15 @@
 
     <form style="position: absolute; z-index: 100000; top: 0vh;padding: 0px;">
             <div id="capas-contenido">
-                    <!--<p>Módulo:</p>-->
                     <select name="Modulo" id="selector_modulo" onchange="rellenar_Tema(value)">
-                        <option value="1" selected>M1. ORGANIZACIÓN</option>
-                        <option value="2">M2. HACIENDA</option>
-                        <option value="3">M3. GESTIÓN DEL TERRITORIO</option>
-                        <option value="4">M4. SERVICIOS PÚBLICOS</option>
-                        <option value="5">M5. MEDIO AMBIENTE</option>
-                        <option value="6">M6. DESARROLLO SOCIAL</option>
-                        <option value="7">M7. DESARROLLO ECONÓMICO</option>
-                        <option value="8">M8. GOBIERNO ABIERTO</option>
+                        <option value="1" selected>M1. Organización</option>
+                        <option value="2">M2. Hacienda</option>
+                        <option value="3">M3. Gestión del Territorio</option>
+                        <option value="4">M4. Servicios Públicos</option>
+                        <option value="5">M5. Medio Ambiente</option>
+                        <option value="6">M6. Desarrollo Social</option>
+                        <option value="7">M7. Desarrollo Económico</option>
+                        <option value="8">M8. Gobierno Abierto</option>
 
                     </select>
             </div>
@@ -327,7 +326,7 @@
             div.style.fontSize = "13px";
             div.style.color = "#333";
             div.style.width = "12vw";
-            div.style.maxWidth = "50vw";
+            div.style.minWidth = "150px";
             //div.style.marginBottom = "6vh";
             //div.style.marginRight = "1vw";
             
@@ -351,7 +350,6 @@
                     </datalist>
                 </div>
             `;
-            //div.style.marginBottom = "6vh";
             div.querySelector('#input-busqueda').onchange = function(e) {
                 const clave = e.target.value;
                 Mapa_Act.eachLayer(layer => {
@@ -432,18 +430,16 @@
                 let Solo_Indicador = Indicador_seleccionado.replace(/^[\d.\s]+/, ""); //Me gusta más en R
                 console.log(Solo_Indicador);
                 this._div.innerHTML = `
-                    <div style="background: 'rgb(98,17,50)'; padding: 12px 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.2); ">
+                    <div style="background: 'rgb(98,17,50)'; padding: 12px 20px; border-radius: 1px;">
                         <h2 style="margin: 0; font-size: 16px; color: #FFFFFF; text-transform: uppercase;">
                             <strong>Indicador:</strong> ${Solo_Indicador}
                         </h2>
-                        <div style="display: flex; align-items: center; margin-top: 5px;">
-                            <h3 style="color: white; border-radius: 4px; font-weight: bold; font-size: 18px; margin-right: 10px;">
-                                Año 20${Año}
-                            </h3>
-                        </div>
+                        <h3 style="color: white; border-radius: 4px; font-size: 18px;">
+                            Año 20${Año}
+                        </h3>
                     </div>
                 `;
-                this._div.style.minWidth = "15vw";
+                this._div.style.minWidth = "80px";
                 this._div.style.maxWidth = "70vw";
                 this._div.style.background="rgb(98,17,50)";
             }
@@ -451,21 +447,21 @@
         Titulo.addTo(map);
 
         //Los logos
-        const Logo_Planeacion = L.control({ position: 'bottomleft' });
+        const Logo = L.control({ position: 'bottomleft' });
 
-        Logo_Planeacion.onAdd = function() {
+        Logo.onAdd = function() {
             img = L.DomUtil.create('img'); //Todos los días le rezo a DomUtil
                                                 //Como la vamos a partir en dos el this._ ayuda a guardarlo
             img.src = 'Logos.png';
-    
             img.style.width = '20vw';
+            img.style.minWidth='150px';
             
 
             return img;
         };
-        Logo_Planeacion.addTo(map);
+        Logo.addTo(map);
         
-        
+        let CapaDestacada = null;
         function Crear_Mapa(M,T,I,A) {
             //Cada que la función se manda a lapp\LOGO INDEMUN1-04.pnglamar para crear el mapa reescribirá los valores 
             //de las variables globales de la selección actual
@@ -483,7 +479,6 @@
                 map.removeLayer(Mapa_Act);
             }
             Titulo.update(A); //No ocupa más cosas, así que puede ir aquí o un poco antes creo
-            //return 
             Mapa_Act = L.geoJSON(geojsonFiltrado, {
                 style: function(feature) {
                     const valor = feature.properties[Combinacion];
@@ -497,16 +492,38 @@
                     };
                 },
                 onEachFeature: function (feature, layer) {
-                    //
-                    //feature.style.borderColor='#757575';
                     //Aquí es cuando le pasamos por encima el cursor a algún feature
-                    layer.on("mouseover", function (e) {
-                        const hovLayer = e.target;
+                    layer.on({
+                        mouseover : function (e) {
+                            if(CapaDestacada){
+                                Mapa_Act.resetStyle(CapaDestacada);
+                            }
+                            var hovLayer = e.target;
+                            hovLayer.setStyle({
+                                color: "white",
+                                weight: '5',
+                            });
+                            hovLayer.bringToFront();
+                            //Y se actualiza el hover
+                            Hover.update(hovLayer.feature.properties,Combinacion);
+                            CapaDestacada=hovLayer;
+                        },
+                        touchend: function (e) { //Solo para telefono
+                            Mapa_Act.resetStyle(e.target);
+                            
+                            //Y se actualiza el hover
+                            Hover.update();
+                            CapaDestacada=null;
+                        },
+                        mouseout : function (e) {
+                            Mapa_Act.resetStyle(e.target);
+                            
+                            //Y se actualiza el hover
+                            Hover.update();
+                            CapaDestacada=null;
+                        }
 
-                    //Y se actualiza el hover
-                        Hover.update(hovLayer.feature.properties,Combinacion);
                     });
-
                     layer.on("click", function () {
                         //Tarjeta_indv(Modulo, Tema, Indicador, Año, feature.properties.NOMGEO);
                         //Tarjeta_por_Modulo(Modulo, Año, feature.properties.NOMGEO);
@@ -547,6 +564,10 @@
                     });
                 }
             }).addTo(map);
+            document.querySelectorAll('.etiqueta').forEach(nombre => {
+            nombre.style.display='none';
+        });
+
         }
         //Crear_Mapa es la que filtra según nuestra selección
         Crear_Mapa(Modulo,Tema,Indicador,Año) //Ejecutamos con los valores por defecto
@@ -578,9 +599,7 @@
                 label.style.fontSize = "15px";
                 label.style.color = "#555";
                 label.style.color="white";
-                //label.style.font-weight="bold";
                 label.style.fontWeight = "bold";
-                //label.style.fontFamily ="monserrat";
                 label.style.fontFamily = "'Montserrat', sans-serif";
 
 
@@ -597,16 +616,14 @@
             };
             //Es que no quise tener que volver a hacerlos :c
             div.appendChild(crearGrupo("Módulo:", "selector_modulo"));
-            div.appendChild(crearGrupo("Tema", "selector_tema"));
-            div.appendChild(crearGrupo("Indicador", "selector_indicador"));
-            div.appendChild(crearGrupo("Año", "selector_Año"));
+            div.appendChild(crearGrupo("Tema:", "selector_tema"));
+            div.appendChild(crearGrupo("Indicador:", "selector_indicador"));
+            div.appendChild(crearGrupo("Año:", "selector_Año"));
 
             return div;
         };
         Caja.addTo(map);
 //////
-
-//////////////////////////////////////////
 
 //La función primera nos dará la información necesaria para nuestro Popup
         //Por lo que se debe llamar cada vez que se hace clic sobre un municipio
@@ -700,11 +717,7 @@
 
         }
         //Ahora queremos la función que genera y cambia la grafica de pastel
-        function Gráfica_Pastel(Mpio,ID){        
-            //document.getElementById("indicador_popup").textContent = document.getElementById("selector_indicador").value;;
-            //modal.style.display = "block";
-            //canvas=document.getElementById(ID)
-            // Si ID ya es el canvas, lo usamos. Si es un texto, lo buscamos.
+        function Gráfica_Pastel(Mpio,ID){
             const canvas = (typeof ID === 'string') ? document.getElementById(ID) : ID;
             if (!canvas) {
                 console.error("No se encontró el canvas con ID:", ID);
@@ -712,21 +725,20 @@
             }
             const ctx = canvas.getContext('2d');
             data = {
-            labels: ['Optimos', 'En Proceso', 'Rezago','Rezago por no información', 'No disponible', 'No medible'],
-            datasets: [
-                {
-                
-                data: [v_AñoMpio,a_AñoMpio,r_AñoMpio,ndR_AñoMpio,nd_AñoMpio,nm_AñoMpio],
-                backgroundColor: [
-                    '#54AB18',
-                    '#FFF540',
-                    '#FF0000',
-                    '#662D2D',
-                    '#B0B0B0',
-                    '#757575'
+                labels: ['Optimos', 'En Proceso', 'Rezago','Rezago por no información', 'No disponible', 'No medible'],
+                datasets: [
+                    {
+                        data: [v_AñoMpio,a_AñoMpio,r_AñoMpio,ndR_AñoMpio,nd_AñoMpio,nm_AñoMpio],
+                        backgroundColor: [
+                            '#54AB18',
+                            '#FFF540',
+                            '#FF0000',
+                            '#662D2D',
+                            '#B0B0B0',
+                            '#757575'
+                        ]
+                    }
                 ]
-                }
-            ]
             };
             if (Grafica) {
                 Grafica.destroy();
@@ -759,9 +771,6 @@
             });
 
         }
-
-        
-
 ///////////////////////////
         //Aquí leemos el excel que contiene nuestras clasificaciones como una lista de listas para más easy
         let Lista_Descriptor = [];
@@ -784,9 +793,6 @@
                 }
             })
             .catch(err => console.error("Error al cargar el archivo:", err));
-
-
     </script>
-
 </body>
 </html>

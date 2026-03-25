@@ -21,40 +21,24 @@
 </head>
 <body style="height: 100vh; width: 100wh;margin: 0;padding: 0; justify-content: center; font-family: 'Montserrat', sans-serif;";>
     <div style="display: flex; justify-content: center; gap: 10px; width: 100%;">
-        <button id="Bttn_M" onclick="Crear_Graficas(Modulo,Año)" style="padding: 10px; font-size:15px; ">Indicadores</button>
-        <button id="Bttn_A" onclick="Crear_Graficas('0',Año)" style=" padding: 10px; font-size:15px;">Totales</button>
+        <button id="Bttn_M" onclick="Crear_Graficas(Modulo,Año)" style="padding: 10px; font-size:15px; width: 10vw; min-width: 100px; border-radius: 5px;">Indicadores</button>
+        <button id="Bttn_A" onclick="Crear_Graficas('0',Año)" style=" padding: 10px; font-size:15px; width: 10vw; min-width: 100px; border-radius: 5px;">Totales</button>
     </div>
     <div>
 
     </div>
     <h3 id="Titulo2" style="margin-left: 1vw;"><strong>Resumen por Año, Municipio y Módulo</strong></h3>
-    <div>
-        <div style="position: absolute; z-index: 100000; margin-left: 1.2vw;"><strong>Año:</strong></div>
-        <div id="T1" style="position: absolute; z-index: 100000; margin-left: 8.3vw;"><strong>Municipio:</strong></div>
-        <div id="T2" style="position: absolute; z-index: 100000; margin-left: 20.1vw;"><strong>Modulo:</strong></div>
+    <div style="display: flex; gap: 30px;">
+        <div style="position: relative; z-index: 100000; margin-left: 1vw; width: 5vw; min-width: 80px;"><strong>Año:</strong></div>
+        <div id="T1" style="position: relative; z-index: 100000; width: 10vw; min-width: 80px; "><strong>Municipio:</strong></div>
+        <div id="T2" style="position: relative; z-index: 100000; width: 10vw; min-width: 80px;"><strong>Módulo:</strong></div>
         <br>
     </div>
     <div style="display: flex; justify-content:left; gap: 30px; width: 100%;">
-    <form style="position: absolute; z-index: 100000; margin-left: 20vw;">
-            <div id="capas-contenido">
-                    <!--<p>Módulo:</p>-->
-                    <select name="Modulo" id="selector_modulo" onchange="Tarjeta_por_Modulo(value,Año)" style="width: 15vw;">
-                        <option value="1" selected>M1. ORGANIZACIÓN</option>
-                        <option value="2">M2. HACIENDA</option>
-                        <option value="3">M3. GESTIÓN DEL TERRITORIO</option>
-                        <option value="4">M4. SERVICIOS PÚBLICOS</option>
-                        <option value="5">M5. MEDIO AMBIENTE</option>
-                        <option value="6">M6. DESARROLLO SOCIAL</option>
-                        <option value="7">M7. DESARROLLO ECONÓMICO</option>
-                        <option value="8">M8. GOBIERNO ABIERTO</option>
-
-                    </select>
-            </div>
-    </form>
     <form style="position: relative; z-index: 100000; margin-left: 1vw;">
             <div id="capas-contenido" style="z-index: 100000;">
                     <!--<p>Año:</p>-->
-                    <select name="Año" id="selector_Año" onchange="Graficar_Año(Modulo,value)" style="width: 5vw;">
+                    <select name="Año" id="selector_Año" onchange="Graficar_Año(Modulo,value)" style="width: 5vw; min-width: 80px; border-radius: 7px;">
                         <option value="20">2020</option>
                         <option value="21">2021</option>
                         <option value="22">2022</option>
@@ -64,11 +48,10 @@
                     </select>
             </div>
     </form>
-
     <form style="position: relative; z-index: 100000;">
         <div id="capas-contenido" style="z-index: 100000;">
             <!--<p>Año:</p>-->
-            <select name="Municipio" id="selector_Mpio" onchange="Tarjeta_por_Modulo(Modulo,Año)" style="width: 10vw;">
+            <select name="Municipio" id="selector_Mpio" onchange="Tarjeta_por_Modulo(Modulo,Año)" style="width: 10vw; min-width: 80px; border-radius: 7px;">
                 <option value="1">Acatlán</option>
                 <option value="2">Acaxochitlán</option>
                 <option value="3">Actopan</option>
@@ -156,6 +139,22 @@
             </select>
         </div>
     </form>
+    <form style="position: relative; z-index: 100000;">
+            <div id="capas-contenido">
+                    <!--<p>Módulo:</p>-->
+                    <select name="Modulo" id="selector_modulo" onchange="Tarjeta_por_Modulo(value,Año)" style="width: 15vw; min-width: 100px; border-radius: 7px;">
+                        <option value="1" selected>M1. Organización</option>
+                        <option value="2">M2. Hacienda</option>
+                        <option value="3">M3. Gestión del Territorio</option>
+                        <option value="4">M4. Servicios Públicos</option>
+                        <option value="5">M5. Medio Ambiente</option>
+                        <option value="6">M6. Desarrollo Social</option>
+                        <option value="7">M7. Desarrollo Económico</option>
+                        <option value="8">M8. Gobierno Abierto</option>
+
+                    </select>
+            </div>
+    </form>
     </div>
 
 
@@ -209,14 +208,6 @@
         }
         //Función para los datos por Modulo, Año y Municipio
         function Tarjeta_por_Modulo(M,A){
-            document.getElementById("Bttn_M").style.background="#621132";
-            document.getElementById("Bttn_M").style.color="#FFFFFF";
-            document.getElementById("Bttn_A").style.background="#FFFFFF";
-            document.getElementById("Bttn_A").style.color="#000000";
-            //Permite la visualización
-            document.getElementById("selector_Mpio").style.visibility="visible";
-            document.getElementById("selector_modulo").style.visibility="visible";
-            document.getElementById("selector_Año").style.visibility="visible";
             Modulo=M;
             Año=A;
             let Mpio=document.getElementById('selector_Mpio').options[document.getElementById('selector_Mpio').selectedIndex].text;
@@ -306,7 +297,7 @@
 
                         title: {
                             display: true,
-                            text: 'Indicadores Totales en '+Mpio+' en el año 20'+Año
+                            text: 'Indicadores en '+Mpio+' en el año 20'+Año
                         }
                     }
                 },
@@ -315,12 +306,6 @@
         //Función para los datos del Total por municipio 
         function Tarjeta_por_Año(A){
             Año=A;
-            document.getElementById("Bttn_M").style.background="#FFFFFF";
-            document.getElementById("Bttn_M").style.color="#000000";
-            document.getElementById("Bttn_A").style.background="#621132";
-            document.getElementById("Bttn_A").style.color="#FFFFFF";
-            document.getElementById("selector_Mpio").style.visibility="hidden";
-            document.getElementById("selector_modulo").style.visibility="hidden";
 
             let geojsonFiltrado = Data2.features.find(
                 f => f.properties.NOMGEO === "Apan" //No importa, esto solo es por mi facilidad
@@ -532,7 +517,7 @@
                         },
                         title: {
                             display: true,
-                            text: 'Indicadores Anuales en el año 20'+A
+                            text: 'Indicadores totales por municipio en el año 20'+A
                         }
                     }
                 },
@@ -545,12 +530,26 @@
         function Crear_Graficas(M,A){
             Año=A;
             if(M=="0"){ //Como Modulo=0 entonces queremos ver la de total por año
+                document.getElementById("Bttn_M").style.background="#FFFFFF";
+                document.getElementById("Bttn_M").style.color="#000000";
+                document.getElementById("Bttn_A").style.background="#621132";
+                document.getElementById("Bttn_A").style.color="#FFFFFF";
+                document.getElementById("selector_Mpio").style.visibility="hidden";
+                document.getElementById("selector_modulo").style.visibility="hidden";
                 Tarjeta_por_Año(A);
                 OpcionSeleccionada=2; //y por tanto estamos en la segunda opción
                 document.getElementById('Titulo2').textContent="Totales por Municipio";
                 document.getElementById('T1').style.visibility="hidden";
                 document.getElementById('T2').style.visibility="hidden";
             }else{
+                document.getElementById("Bttn_M").style.background="#621132";
+                document.getElementById("Bttn_M").style.color="#FFFFFF";
+                document.getElementById("Bttn_A").style.background="#FFFFFF";
+                document.getElementById("Bttn_A").style.color="#000000";
+                //Permite la visualización
+                document.getElementById("selector_Mpio").style.visibility="visible";
+                document.getElementById("selector_modulo").style.visibility="visible";
+                document.getElementById("selector_Año").style.visibility="visible";
                 Tarjeta_por_Modulo(M,A);//Si Modulo!=0 entonces queremos ver la de Modulo-Año-Municipio
                 OpcionSeleccionada=1;
                 document.getElementById("Titulo2").textContent="Resumen por Año, Municipio y Módulo";
@@ -567,11 +566,14 @@
                 Crear_Graficas(0,A)
             }
         }
-
-
-
-
+        document.getElementById("Bttn_M").style.background="#621132";
+        document.getElementById("Bttn_M").style.color="#FFFFFF";
+        document.getElementById("Bttn_A").style.background="#FFFFFF";
+        document.getElementById("Bttn_A").style.color="#000000";
+        //Permite la visualización
+        document.getElementById("selector_Mpio").style.visibility="visible";
+        document.getElementById("selector_modulo").style.visibility="visible";
+        document.getElementById("selector_Año").style.visibility="visible";
         Tarjeta_por_Modulo("1","25");
-
    </script>
 </body>
