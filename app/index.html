@@ -15,7 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script> <!-- Para leer excel -->
 </head>
 <style>
-    
+    /*Para los cuadritos del histórico que aparece en cada popup*/
     .recuadros{
         width: 45px; 
         height: 45px; 
@@ -36,39 +36,8 @@
         z-index: 1000;
     }
 
-    .modal {
-            display: none; /* La idea es que este oculto por defecto */
-            position: fixed;
-            z-index: 1000000;
-            left: 0;
-            top: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0,0,0,0.5);
-
-            justify-content: center;
-            align-items: center;
-        }
-    .modal-content {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            width: 90vw;
-            height: 80vh;
-        }
-    .close {
-            float: right;
-            font-size: 20px;
-            cursor: pointer;
-        }
-    .modal-content canvas{
-        width:100%;
-        height:70vh;
-    }
-
-
 </style>
-<body style="height: 100vh; width: 100wh;margin: 0;padding: 0;">
+<body style="height: 100vh; width: 100wh;margin: 0;padding: 0; font-family: 'Montserrat', sans-serif;">
 
     <button id ="Grafica_ModAñoMpio" style="display: none; position: absolute; top: 50px; right: 150px; z-index: 10000;" onclick="Tarjeta_por_Modulo(Modulo,Año,Municipio)">MAM </button>
     <button id ="Grafica_Año" style="display: none; position: absolute; top: 100px; right: 150px; z-index: 10000;" onclick="Tarjeta_por_Año(Año)">Anual </button>
@@ -132,42 +101,6 @@
 
     <div id="map"></div>
 
-    <!--<Este es el contenedor canva para la gráfica de barras anual-->
-    <!--
-    <div>
-        <canvas id="myChart0" width= "1500vw" height= "800vh"></canvas>
-    </div> -->
-    <div id="chartModal0" class="modal" style="z-index: 100000000;">
-        <div class="modal-content;">
-            <span class="close" id="closeModal0">&times;</span>
-            <h2 id="indicador_popup0"></h2>
-            <canvas id="myChart0"></canvas>
-        </div>
-    </div>
-
-
-    <!-- Modal -->
-    <!--<div id="chartModal" class="modal" style="z-index: 1000000000;">
-        <div class="modal-content">
-            <span class="close" id="closeModal">&times;</span>
-            <h2 id="indicador_popup"></h2>
-            <canvas id="myChart"></canvas>
-        </div>
-    </div>-->
-
-
-    <!--<Este es el contenedor canva para la gráfica de barras por municipio, módulo y año-->
-    <!--<div>
-        <canvas id="myChart2" width= "600vw" height= "300vh"></canvas>
-    </div>-->
-    <!-- Modal -->
-    <div id="chartModal2" class="modal" style="z-index: 1000000000;">
-        <div class="modal-content">
-            <span class="close" id="closeModal2">&times;</span>
-            <h2 id="indicador_popup2"></h2>
-            <canvas id="myChart2"></canvas>
-        </div>
-    </div>
     
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script><!--<Este es para el mapa base-->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script><!--<Este es para las gráficas-->
@@ -206,24 +139,8 @@
         //const openBtn = document.getElementById("openModal");
         //const closeBtn = document.getElementById("closeModal");
 
-        //Para la gráfica de año-municipio-módulo
-        let data2;
-        let Grafica2;
-        const ctx2 =document.getElementById('myChart2').getContext('2d');
-
-        const modal2 = document.getElementById("chartModal2");
-        //const openBtn = document.getElementById("openModal");
-        const closeBtn2 = document.getElementById("closeModal2");
 
 
-
-        //Para la gráfica por año
-        let data0;
-        let Grafica0;
-        const ctx0 =document.getElementById('myChart0').getContext('2d');
-        const modal0 = document.getElementById("chartModal0");
-        //const openBtn = document.getElementById("openModal");
-        const closeBtn0 = document.getElementById("closeModal0");
 
         //Estas son vitales pues serán las que constantemente dicten la selección en la que estamos
         let Modulo= "1"; //del 1 al 8
@@ -531,12 +448,26 @@
                 this._div.style.background="rgb(98,17,50)";
             }
         };
+        Titulo.addTo(map);
+
         //Los logos
         const Logo_Planeacion = L.control({ position: 'bottomleft' });
 
-        Titulo.addTo(map);
+        Logo_Planeacion.onAdd = function() {
+            img = L.DomUtil.create('img'); //Todos los días le rezo a DomUtil
+                                                //Como la vamos a partir en dos el this._ ayuda a guardarlo
+            img.src = 'Logos.png';
+    
+            img.style.width = '20vw';
+            
+
+            return img;
+        };
+        Logo_Planeacion.addTo(map);
+        
+        
         function Crear_Mapa(M,T,I,A) {
-            //Cada que la función se manda a llamar para crear el mapa reescribirá los valores 
+            //Cada que la función se manda a lapp\LOGO INDEMUN1-04.pnglamar para crear el mapa reescribirá los valores 
             //de las variables globales de la selección actual
             Modulo = M;
             Tema = T;
@@ -619,7 +550,6 @@
         }
         //Crear_Mapa es la que filtra según nuestra selección
         Crear_Mapa(Modulo,Tema,Indicador,Año) //Ejecutamos con los valores por defecto
-
         document.querySelectorAll('.etiqueta').forEach(nombre => {
             nombre.style.display='none';
         });
@@ -726,81 +656,6 @@
             Gráfica_Pastel(Mpio,ID);
         }
 
-        //Ahora esta función nos dará la información necesaria para la gráfica de Municipio-Módulo-Año
-        //Por lo que se debe mandar a llamar cuando uno de esos tres filtros cambie
-        function Tarjeta_por_Modulo(M,A,Mpio){
-            let geojsonFiltrado = Data2.features.find(
-                f => f.properties.NOMGEO === Mpio
-            );
-            let columnas_modulo= Object.keys(geojsonFiltrado.properties).filter(col => col.split("_")[0] === "M"+M && col.split("_")[3] === A).concat(["NOMGEO"]);
-            const geojsonFiltrado2 = filtrarPorCol(Data2, columnas_modulo);
-
-            let geojsonFiltrado3 = geojsonFiltrado2.features.find(
-                f => f.properties.NOMGEO === Mpio
-            );
-            let modulos_año= columnas_modulo.map(col => geojsonFiltrado3.properties[col]);
-
-            v_ModAñoMpio = (modulos_año.filter(v => Number(v) === 1).length);
-            console.log(v_ModAñoMpio+" de optimos") //
-
-            a_ModAñoMpio = (modulos_año.filter(v => Number(v) === 2).length);
-            console.log(a_ModAñoMpio+" de en proceso") //
-
-            r_ModAñoMpio = (modulos_año.filter(v => Number(v) === 3).length);
-            console.log(r_ModAñoMpio+" de rezago") //
-
-            nm_ModAñoMpio = (modulos_año.filter(v => Number(v) === 4).length);
-            console.log(nm_ModAñoMpio+" de 4 (no medible)") //
-
-            ndR_ModAñoMpio = (modulos_año.filter(v => Number(v) === 5).length);
-            console.log(ndR_ModAñoMpio+" de 5(rezago por no info)") //
-
-            nd_ModAñoMpio = (modulos_año.filter(v => Number(v) === 0).length);
-            console.log(nd_ModAñoMpio+" de 0 (no disponible)") //
-
-            Gráfica_Barras1(Mpio);
-            
-        }
-        function Tarjeta_por_Año(A){
-            let geojsonFiltrado = Data2.features.find(
-                f => f.properties.NOMGEO === 13001 //No importa, esto solo es por mi facilidad
-            );
-
-            //Debemos reiniciarlos para evitar que estén guardando de anteriores
-            Optimos = [];
-            EnProcesos = [];
-            Rezagos = [];
-            RezNoInfo = [];
-            NoDispo = [];
-            NoMedible = [];
-
-            //La idea es que por cada municipio (feature) verifique cuantos optimos tiene, cuantos en proceso, etc.
-            //Y solo depende del año, por lo que hay que cortar a las columnas que terminan en ese año
-            let columnas_modulo= Object.keys(geojsonFiltrado.properties).filter(col => col.split("_")[3] === A).concat(["NOMGEO"]);
-            const geojsonFiltrado2 = filtrarPorCol(Data2, columnas_modulo);
-            geojsonFiltrado2.features.forEach(feature => {
-                // contar valores iguales a 1
-                let z1 = Object.values(feature.properties).filter(v => Number(v) === 1).length;
-                Optimos.push(z1);
-
-                let z2 = Object.values(feature.properties).filter(v => Number(v) === 2).length;
-                EnProcesos.push(z2);
-
-                let z3 = Object.values(feature.properties).filter(v => Number(v) === 3).length;
-                Rezagos.push(z3);
-
-                let z4 = Object.values(feature.properties).filter(v => Number(v) === 4).length;
-                NoMedible.push(z4);
-
-                let z5 = Object.values(feature.properties).filter(v => Number(v) === 5).length;
-                RezNoInfo.push(z5);
-
-                let z0 = Object.values(feature.properties).filter(v => Number(v) === 0).length;
-                NoDispo.push(z1);
-
-                Gráfica_Barras0(A)
-            });
-        }
         //Ya tenemos las funciones que nos pueden regresar los valores para las gáficas y el mapa
         //Ahora solo necesitamos una forma de seleccionar los 4 niveles para filtrar sobre los valores
         //Para ello crearemos 4 objetos tipo select en el index, pero necesitamos una forma de llenar las opciones
@@ -888,6 +743,16 @@
                         title: {
                             display: true,
                             text: 'Indicadores en '+Mpio+' en el año 20'+Año
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context){
+                                    x=context.formattedValue.split(",")[0];
+                                    y=context.formattedValue.split(",")[1];
+                                    z=y.slice(0,2);
+                                    return x+"."+z+"%";
+                                }
+                            }
                         }
                     }
                 },
@@ -895,238 +760,7 @@
 
         }
 
-        //Ahora queremos la función que genera y cambia la grafica de pastel
-        function Gráfica_Barras1(Mpio){
-            modal2.style.display = "block";
-            data2 = {
-            labels: ['Optimos', 'En Proceso', 'Rezago','Rezago por no información', 'No disponible', 'No medible'],
-            datasets: [
-                {
-                label: 'Óptimo',
-                data: [v_ModAñoMpio,a_ModAñoMpio,r_ModAñoMpio,ndR_ModAñoMpio,nd_ModAñoMpio,nm_ModAñoMpio],
-                backgroundColor: [
-                    '#54AB18',
-                    '#FFF540',
-                    '#FF0000',
-                    '#662D2D',
-                    '#B0B0B0',
-                    '#757575'
-                ],
-                borderColor: [
-                    '#54AB18',
-                    '#FFF540',
-                    '#FF0000',
-                    '#662D2D',
-                    '#B0B0B0',
-                    '#757575'
-                ],
-                borderWidth: 1
-                }]
-            };
-            if (Grafica2) {
-                Grafica2.destroy();
-            }
-            Grafica2 = new Chart(ctx2, {
-                type: 'bar',
-                data: data2,
-                options: {
-                    responsive: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: 'Indicadores Totales en '+Mpio+' en el año 20'+Año
-                        }
-                    }
-                },
-            });
-        }
-        closeBtn2.onclick = function() {
-            modal2.style.display = "none";
-        };
-
-        //Se cierrar si se hace clic afuera
-        window.onclick = function(event) {
-            if (event.target === modal2) {
-                modal2.style.display = "none";
-            }
-        };
-
-        //Ahora queremos la función que genera y cambia la grafica de pastel
-        function Gráfica_Barras0(A){
-            modal0.style.display = "flex";
-            data0 = {
-            labels: [
-                "Acatlán",
-                "Acaxochitlán",
-                "Actopan",
-                "Agua Blanca de Iturbide",
-                "Ajacuba",
-                "Alfajayucan",
-                "Almoloya",
-                "Apan",
-                "Atitalaquia",
-                "Atlapexco",
-                "Atotonilco de Tula",
-                "Atotonilco el Grande",
-                "Calnali",
-                "Cardonal",
-                "Chapantongo",
-                "Chapulhuacán",
-                "Chilcuautla",
-                "Cuautepec de Hinojosa",
-                "El Arenal",
-                "Eloxochitlán",
-                "Emiliano Zapata",
-                "Epazoyucan",
-                "Francisco I. Madero",
-                "Huasca de Ocampo",
-                "Huautla",
-                "Huazalingo",
-                "Huehuetla",
-                "Huejutla de Reyes",
-                "Huichapan",
-                "Ixmiquilpan",
-                "Jacala de Ledezma",
-                "Jaltocán",
-                "Juárez Hidalgo",
-                "La Misión",
-                "Lolotla",
-                "Metepec",
-                "Metztitlán",
-                "Mineral de la Reforma",
-                "Mineral del Chico",
-                "Mineral del Monte",
-                "Mixquiahuala de Juárez",
-                "Molango de Escamilla",
-                "Nicolás Flores",
-                "Nopala de Villagrán",
-                "Omitlán de Juárez",
-                "Pachuca de Soto",
-                "Pacula",
-                "Pisaflores",
-                "Progreso de Obregón",
-                "San Agustín Metzquititlán",
-                "San Agustín Tlaxiaca",
-                "San Bartolo Tutotepec",
-                "San Felipe Orizatlán",
-                "San Salvador",
-                "Santiago de Anaya",
-                "Santiago Tulantepec de Lugo Guerrero",
-                "Singuilucan",
-                "Tasquillo",
-                "Tecozautla",
-                "Tenango de Doria",
-                "Tepeapulco",
-                "Tepehuacán de Guerrero",
-                "Tepeji del Río de Ocampo",
-                "Tepetitlán",
-                "Tetepango",
-                "Tezontepec de Aldama",
-                "Tianguistengo",
-                "Tizayuca",
-                "Tlahuelilpan",
-                "Tlahuiltepa",
-                "Tlanalapa",
-                "Tlanchinol",
-                "Tlaxcoapan",
-                "Tolcayuca",
-                "Tula de Allende",
-                "Tulancingo de Bravo",
-                "Villa de Tezontepec",
-                "Xochiatipan",
-                "Xochicoatlán",
-                "Yahualica",
-                "Zacualtipán de Ángeles",
-                "Zapotlán de Juárez",
-                "Zempoala",
-                "Zimapán"
-            ],
-            datasets: [
-                {
-                label: 'Optimos',
-                data: Optimos,
-                backgroundColor:'#54AB18',
-                borderColor: '#54AB18'
-                },
-                {
-                label: 'En Proceso',
-                data: EnProcesos,
-                backgroundColor:'#FFF540',
-                borderColor: '#FFF540'
-                },
-                {
-                label: 'Rezago',
-                data: Rezagos,
-                backgroundColor: '#FF0000',
-                borderColor: '#FF0000'
-                },
-                {
-                label: 'Rezago por no info',
-                data: RezNoInfo,
-                backgroundColor: '#662D2D',
-                borderColor: '#662D2D'
-                },
-                {
-                label: 'No disponible',
-                data: NoDispo,
-                backgroundColor: '#662D2D',
-                borderColor: '#662D2D'
-                },
-                {
-                label: 'No medible',
-                data: NoMedible,
-                backgroundColor: '#757575',
-                borderColor: '#757575'
-                },
-            ]
-            };
-            if (Grafica0) {
-                Grafica0.destroy();
-            }
-            Grafica0 = new Chart(ctx0, {
-                type: 'bar',
-                data: data0,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        },
-                        x: {
-                            stacked: false
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: 'Indicadores Anuales en el año 20'+A
-                        }
-                    }
-                },
-            });
-        }
-        closeBtn0.onclick = function() {
-            modal0.style.display = "none";
-        };
-
-        //Se cierrar si se hace clic afuera
-        window.onclick = function(event) {
-            if (event.target === modal0) {
-                modal0.style.display = "none";
-            }
-        };
+        
 
 ///////////////////////////
         //Aquí leemos el excel que contiene nuestras clasificaciones como una lista de listas para más easy

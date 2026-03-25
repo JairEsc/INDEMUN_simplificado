@@ -14,21 +14,31 @@
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script> <!-- Para leer excel -->
+    <link href="https://fonts.googleapis.com" rel="stylesheet"> <!-- Esteeeeeee -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body style="height: 100vh; width: 100wh;margin: 0;padding: 0; justify-content: center;">
+<body style="height: 100vh; width: 100wh;margin: 0;padding: 0; justify-content: center; font-family: 'Montserrat', sans-serif;";>
     <div style="display: flex; justify-content: center; gap: 10px; width: 100%;">
         <button id="Bttn_M" onclick="Crear_Graficas(Modulo,Año)" style="padding: 10px; font-size:15px; ">Indicadores</button>
         <button id="Bttn_A" onclick="Crear_Graficas('0',Año)" style=" padding: 10px; font-size:15px;">Totales</button>
     </div>
-    <h3 id="Titulo2">Resumen por Año, Municipio y Módulo</h3>
+    <div>
+
+    </div>
+    <h3 id="Titulo2" style="margin-left: 1vw;"><strong>Resumen por Año, Municipio y Módulo</strong></h3>
+    <div>
+        <div style="position: absolute; z-index: 100000; margin-left: 1.2vw;"><strong>Año:</strong></div>
+        <div id="T1" style="position: absolute; z-index: 100000; margin-left: 8.3vw;"><strong>Municipio:</strong></div>
+        <div id="T2" style="position: absolute; z-index: 100000; margin-left: 20.1vw;"><strong>Modulo:</strong></div>
+        <br>
+    </div>
     <div style="display: flex; justify-content:left; gap: 30px; width: 100%;">
-    <form style="position: absolute; z-index: 100000; margin-left: 400px;">
+    <form style="position: absolute; z-index: 100000; margin-left: 20vw;">
             <div id="capas-contenido">
                     <!--<p>Módulo:</p>-->
-                    <select name="Modulo" id="selector_modulo" onchange="Tarjeta_por_Modulo(value,Año)">
+                    <select name="Modulo" id="selector_modulo" onchange="Tarjeta_por_Modulo(value,Año)" style="width: 15vw;">
                         <option value="1" selected>M1. ORGANIZACIÓN</option>
                         <option value="2">M2. HACIENDA</option>
                         <option value="3">M3. GESTIÓN DEL TERRITORIO</option>
@@ -41,10 +51,10 @@
                     </select>
             </div>
     </form>
-    <form style="position: relative; z-index: 100000; margin-left: 10px;">
+    <form style="position: relative; z-index: 100000; margin-left: 1vw;">
             <div id="capas-contenido" style="z-index: 100000;">
                     <!--<p>Año:</p>-->
-                    <select name="Año" id="selector_Año" onchange="Graficar_Año(Modulo,value)">
+                    <select name="Año" id="selector_Año" onchange="Graficar_Año(Modulo,value)" style="width: 5vw;">
                         <option value="20">2020</option>
                         <option value="21">2021</option>
                         <option value="22">2022</option>
@@ -58,7 +68,7 @@
     <form style="position: relative; z-index: 100000;">
         <div id="capas-contenido" style="z-index: 100000;">
             <!--<p>Año:</p>-->
-            <select name="Municipio" id="selector_Mpio" onchange="Tarjeta_por_Modulo(Modulo,Año)">
+            <select name="Municipio" id="selector_Mpio" onchange="Tarjeta_por_Modulo(Modulo,Año)" style="width: 10vw;">
                 <option value="1">Acatlán</option>
                 <option value="2">Acaxochitlán</option>
                 <option value="3">Actopan</option>
@@ -151,15 +161,16 @@
 
 
     <div style="width: 100wh; height: 70vh; position: relative;">
-        <canvas id="myChart2">UUUU</canvas>
+        <canvas id="myChart2"></canvas>
     </div>
     <script src="Cargar_data.js"></script> 
     <script>
+        //Variables globales
         let Modulo="1";
         let Tema="1";
         let Indicador="1";
         let Año="25";
-        //Variables para la gráfica
+        //Variables para las gráfica de barras
         let data2;
         let data0;
         let Grafica2;
@@ -174,7 +185,7 @@
         let ndR_ModAñoMpio = 0;
         let nd_ModAñoMpio = 0;
 
-        //
+        //Arreglos para guardar para cada municipio
         let Optimos = [];
         let EnProcesos = [];
         let Rezagos = [];
@@ -182,6 +193,7 @@
         let NoDispo = [];
         let NoMedible = [];
 
+        //LA función para filtrar columnas
         function filtrarPorCol(data, columnasPermitidas) {
             return {
                 type: "FeatureCollection",
@@ -195,7 +207,7 @@
                 }))
             };
         }
-        //Modulo, Año y Municipio
+        //Función para los datos por Modulo, Año y Municipio
         function Tarjeta_por_Modulo(M,A){
             document.getElementById("Bttn_M").style.background="#621132";
             document.getElementById("Bttn_M").style.color="#FFFFFF";
@@ -240,7 +252,7 @@
             Gráfica_Barras1(Mpio);
             
         }
-        //Ahora queremos la función que genera y cambia la grafica de pastel
+        //Ahora queremos la función que genera y cambia la grafica de barras por Modulo-Año-Municipio
         function Gráfica_Barras1(Mpio){
             //modal2.style.display = "block";
             data2 = {
@@ -300,7 +312,7 @@
                 },
             });
         }
-        //Ahora el Total
+        //Función para los datos del Total por municipio 
         function Tarjeta_por_Año(A){
             Año=A;
             document.getElementById("Bttn_M").style.background="#FFFFFF";
@@ -353,10 +365,9 @@
                 Gráfica_Barras0(A)
             });
         }
-        //Ahora queremos la función que genera y cambia la grafica de pastel
+        //Y ahora queremos la función que genera y cambia la grafica de barras del Total
         function Gráfica_Barras0(A){
             Año=A;
-            //modal0.style.display = "flex";
             data0 = {
             labels: [
                 "Acatlán",
@@ -506,11 +517,11 @@
                         x: {
                             stacked: false,
                             ticks: {
-                autoSkip: false,   // <-- ESTO obliga a mostrar TODOS los nombres
-                maxRotation: 90,   // Rota las etiquetas 90 grados para que quepan
-                minRotation: 90,
+                autoSkip: false,
+                maxRotation: 90,
+                minRotation: 90, //Iguales para que queden en vertical siempre y quepan todos
                 font: {
-                    size: 9        // Un tamaño un poco más pequeño ayuda mucho
+                    size: 9
                 }
             }
                         }
@@ -527,19 +538,27 @@
                 },
             });
         }
-        let OpcionSeleccionada = 1;
+        //Aqui vienen dos funciones un poco rebuscadas:
+
+        //Esta se refiere a si queremos ver la Grafica por Módulo-Año-Municipio (1) o la de total por año (2)
+        let OpcionSeleccionada = 1; //1 si presionamos el botón de "Indicadores" y 2 si presionamos el botón de "Totales"
         function Crear_Graficas(M,A){
             Año=A;
-            if(M=="0"){
+            if(M=="0"){ //Como Modulo=0 entonces queremos ver la de total por año
                 Tarjeta_por_Año(A);
-                OpcionSeleccionada=2;
+                OpcionSeleccionada=2; //y por tanto estamos en la segunda opción
                 document.getElementById('Titulo2').textContent="Totales por Municipio";
+                document.getElementById('T1').style.visibility="hidden";
+                document.getElementById('T2').style.visibility="hidden";
             }else{
-                Tarjeta_por_Modulo(M,A);
+                Tarjeta_por_Modulo(M,A);//Si Modulo!=0 entonces queremos ver la de Modulo-Año-Municipio
                 OpcionSeleccionada=1;
                 document.getElementById("Titulo2").textContent="Resumen por Año, Municipio y Módulo";
+                document.getElementById('T1').style.visibility="visible";
+                document.getElementById('T2').style.visibility="visible";
             }
         }
+        //Y esta función es solo para que el mismo select de año funcione para las dos opciones anteriores
         function Graficar_Año(M,A){
             if(OpcionSeleccionada==1){
                 Crear_Graficas(M,A);
