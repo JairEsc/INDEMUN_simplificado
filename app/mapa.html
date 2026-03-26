@@ -398,7 +398,7 @@
                         </div>
                     </div>
                 `;
-                this._div.style.width = "15vw";
+                this._div.style.width = window.screen.width<450?"45vw":"15vw";
                 this._div.style.maxWidth = "50vw";
                 
             }
@@ -440,7 +440,7 @@
                     </div>
                 `;
                 this._div.style.minWidth = "80px";
-                this._div.style.maxWidth = "70vw";
+                this._div.style.maxWidth = "40vw";
                 this._div.style.background="rgb(98,17,50)";
             }
         };
@@ -586,8 +586,8 @@
             div.style.boxShadow = "0 0 15px rgb(0,0,0,0.5)";
             div.style.backgroundColor="#000000";
 
-            div.style.width = "20vw";
-            div.style.maxWidth = "35vw";
+            div.style.width = "30vw";
+            div.style.maxWidth = "50vw";
 
             div.style.background = "rgb(98,17,50)";
             div.style.borderRadius = "10px"; //Aqui se redondea

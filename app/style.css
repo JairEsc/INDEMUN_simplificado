@@ -10,7 +10,6 @@ body {
     margin: 0;
     font-family: 'Montserrat', sans-serif;
     background-color: white;
-    /* Líneas de fondo sutiles (opcional) */
     background-image: radial-gradient(#e5e5e5 1px, transparent 1px);
     background-size: 30px 30px;
 }
@@ -20,7 +19,7 @@ body {
     background-color: var(--guinda-principal);
     color: white;
     text-align: center;
-    padding: 10px 0;
+    padding: 10px 15px; /* Añadí un poco de padding lateral */
     font-size: 0.9rem;
     font-weight: bold;
     letter-spacing: 1px;
@@ -34,34 +33,10 @@ body {
     padding: 40px 20px;
 }
 
-.logos {
-    display: flex;
-    align-items: center;
-    gap: 30px;
-}
-
 .logo-hidalgo {
     height: 140px;
-}
-
-.divider {
-    width: 2px;
-    height: 70px;
-    background-color: #333;
-}
-
-.indemun-text h1 {
-    margin: 0;
-    color: var(--guinda-oscuro);
-    font-size: 2.5rem;
-    letter-spacing: 2px;
-}
-
-.indemun-text p {
-    margin: 0;
-    font-size: 0.7rem;
-    color: #666;
-    font-weight: bold;
+    max-width: 100%; /* Para que no se salga en pantallas mini */
+    object-fit: contain;
 }
 
 /* Grid de Tarjetas */
@@ -69,7 +44,7 @@ body {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 100px;
+    gap: 40px; /* Reduje el gap de 100px a 40px para que no queden tan separadas */
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
@@ -77,7 +52,7 @@ body {
 
 .card {
     background-color: var(--guinda-principal);
-    width: 20vw;
+    width: 320px; /* Ancho fijo por defecto para desktop */
     border-radius: 25px;
     overflow: hidden;
     display: flex;
@@ -129,7 +104,7 @@ body {
     background: linear-gradient(to bottom, var(--dorado-light), var(--dorado));
     color: #fff;
     text-decoration: none;
-    padding: 10px 0;
+    padding: 12px 0;
     border-radius: 12px;
     font-weight: bold;
     width: 150px;
@@ -139,7 +114,46 @@ body {
     transition: opacity 0.3s;
 }
 
-.btn-entrar:hover {
-    opacity: 0.9;
+/* ==========================================
+   MEDIA QUERIES (RESPONSIVO)
+   ========================================== */
+
+/* Tablets y pantallas medianas */
+@media (max-width: 992px) {
+    .cards-container {
+        gap: 30px;
+    }
+    .card {
+        width: 40%; /* Dos columnas en tablets */
+        min-width: 280px;
+    }
 }
 
+/* Celulares */
+@media (max-width: 768px) {
+    .top-bar {
+        font-size: 0.75rem; /* Texto más pequeño para que no rompa la línea */
+    }
+
+    .logo-hidalgo {
+        height: 100px; /* Logo más pequeño en móvil */
+    }
+
+    .logo-container {
+        padding: 20px;
+    }
+
+    .cards-container {
+        gap: 25px;
+    }
+
+    .card {
+        width: 100%; /* Una sola columna en móvil */
+        max-width: 350px; /* Para que no se vea gigante en teléfonos anchos */
+    }
+
+    .card-content h3 {
+        font-size: 1.1rem;
+        min-height: auto;
+    }
+}
