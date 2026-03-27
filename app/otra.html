@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INDEMUN - Hidalgo</title>
+    <link rel="stylesheet" href="style_otra.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="top-bar">
+        Otra Información
+    </header>
+
+    <main class="cards-container" style="flex-wrap: nowrap;padding-top: 20vh;">
+        
+        <div class="card" style="width: 20vw;height: 50vh;">
+            <div class="card-image">
+                <img src="assets/img/universidades.jpg" alt="Indicadores en mapas">
+            </div>
+            <div class="card-content" >
+                <h3>Universidades participantes</h3>
+                <p>Ver las universidades participantes</p>
+                <a href="#" class="btn-entrar" onclick="abrir('doc/universidades_.pdf', event)">Entrar</a>
+            </div>
+        </div>
+
+        <div class="card" style="width: 20vw;height: 50vh;">
+            <div class="card-image">
+                <img src="assets/img/clasificacion.png" alt="Estadísticas">
+            </div>
+            <div class="card-content">
+                <h3>Clasificación de los indicadores</h3>
+                <p>Ver la clasificación de los indicadores</p>
+                <a href="#" class="btn-entrar" onclick="abrir('doc/clasificacion.pdf', event)">Entrar</a>
+            </div>
+        </div>
+
+        <div class="card" style="width: 20vw;height: 50vh;">
+            <div class="card-image">
+                <img src="assets/img/guia.png" alt="Información Relevante">
+            </div>
+            <div class="card-content">
+                <h3>Guía Consultiva de Desempeño Municipal 2022 – 2024</h3>
+                <p>Ver la guía consultiva de desempeño municipal.</p>
+                <a href="#" class="btn-entrar" onclick="abrir('doc/gdm.pdf', event)">Entrar</a>
+            </div>
+        </div>
+        <div class="card" style="width: 20vw;height: 50vh;">
+            <div class="card-image">
+                <img src="assets/img/guia2025.png" alt="Información Relevante">
+            </div>
+            <div class="card-content">
+                <h3>Guía Consultiva de Desempeño Municipal 2025 – 2027</h3>
+                <p>Ver la guía consultiva de desempeño municipal.</p>
+                <a href="#" class="btn-entrar" onclick="abrir('doc/gdm2025.pdf', event)">Entrar</a>
+            </div>
+        </div>
+
+    </main>
+<div id="pdfModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="cerrarModal()">&times;</span>
+        <iframe id="pdfViewer" src="" frameborder="0"></iframe>
+    </div>
+</div>
+<script>
+    function abrir(rutaPdf, evento) {
+    // Evita que el enlace siga el href (importante)
+    if(evento) evento.preventDefault();
+
+    const modal = document.getElementById("pdfModal");
+    const viewer = document.getElementById("pdfViewer");
+
+    viewer.src = rutaPdf; // Asigna la ruta del PDF al iframe
+    modal.style.display = "block"; // Muestra el modal
+}
+
+function cerrarModal() {
+    const modal = document.getElementById("pdfModal");
+    const viewer = document.getElementById("pdfViewer");
+    
+    modal.style.display = "none";
+    viewer.src = ""; // Limpia el src para detener la carga
+}
+
+// Cerrar si el usuario hace clic fuera del contenido blanco
+window.onclick = function(event) {
+    const modal = document.getElementById("pdfModal");
+    if (event.target == modal) {
+        cerrarModal();
+    }
+}
+</script>
+</body>
+</html>
