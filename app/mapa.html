@@ -85,14 +85,13 @@
     </form>
     <form style="position: absolute; z-index: 100000; top: 0vh;">
             <div id="capas-contenido" style="z-index: 100000;">
-                    <!--<p>Año:</p>-->
                     <select name="Año" id="selector_Año" onchange="Crear_Mapa(Modulo,Tema,Indicador,value)">
                         <option value="20">2020</option>
                         <option value="21">2021</option>
                         <option value="22">2022</option>
                         <option value="23">2023</option>
                         <option value="24">2024</option>
-                        <option value="25" selected>2025</option>
+                        <option value="25" selected>2025</option> <!--[ACTUALIZAR]-->
                     </select>
             </div>
     </form>
@@ -145,7 +144,8 @@
         let Modulo= "1"; //del 1 al 8
         let Tema = "1"; // entre el 1 y el 6 (aunque la mayoría tienen menos)
         let Indicador = "1"; // entre el 1 y el 10 (aunque la mayoría tienen menos)
-        let Año= "25"; //// entre el 20 y el 25 (según el año actual)
+        let Año= "25"; //// entre el 20 y el 25 (según el año actual) 
+        //[ACTUALIZAR]
         let Municipio="13048"
         //Nos vamos al 1.1.1 de 2025 por defecto
 
@@ -157,6 +157,7 @@
         let A23 = 0;
         let A24 = 0;
         let A25 = 0;
+        //[ACTUALIZAR]
 
         //Estas son para gráfica de pastel
         let v_AñoMpio = 0;
@@ -218,8 +219,6 @@
             }
         };
 
-        
-
         //La función debe recibir las 4 clasificaciones y luego mostrar el mapa
         //y obtener el la información necesaria para las gráficas
 
@@ -257,7 +256,7 @@
                 const Mpio_Act = Data2.features.find(f => f.properties.NOMGEO === Mpio_NOMGEO).properties;
 
                 
-                for(const año of ["20","21","22","23","24","25"]){
+                for(const año of ["20","21","22","23","24","25"]){ //[ACTUALIZAR]
                     const recuadro25 = popupNode.querySelector('#recuadro_A'+año);
                         if (año === Año) {  //O sea que se fija en el que corresponda al año seleccionado
                             recuadro25.style.border = "2px solid #000000";
@@ -280,7 +279,6 @@
                 //Solo se me ocurrió acceder al select y extraer el TEXTO que corresponde a la descripción del Indicador
                 const Indicador_seleccionado = document.getElementById('selector_indicador').options[document.getElementById('selector_indicador').selectedIndex].text;
                 const titulo = popupNode.querySelector('#indicador_popup');
-                //console.log(textoSeleccionado);
                 if(titulo){
                     titulo.textContent =Indicador_seleccionado;
                 }
@@ -288,7 +286,7 @@
                 //Por lo visto debe haber un pequeño momento para que Chart tenga tiempo, o si no la gráfica no
                 //alcanza a colocarse en el popup y se ve vacío
                 setTimeout(() => {
-                    Tarjeta_indv(Modulo, Tema, Indicador, Año, Mpio_NOMGEO, CanvasID);
+                    Datos_Pastel(Modulo, Tema, Indicador, Año, Mpio_NOMGEO, CanvasID);
                 }, 100);
             }
         });
@@ -446,7 +444,7 @@
         };
         Titulo.addTo(map);
 
-        //Los logos
+        //Los logos (unidos horizontalmente en uno solo)
         const Logo = L.control({ position: 'bottomleft' });
 
         Logo.onAdd = function() {
@@ -508,6 +506,7 @@
                             Hover.update(hovLayer.feature.properties,Combinacion);
                             CapaDestacada=hovLayer;
                         },
+                        //Cuando se deja de tocar (idea robadad de Lalo)
                         touchend: function (e) { //Solo para telefono
                             Mapa_Act.resetStyle(e.target);
                             
@@ -515,6 +514,7 @@
                             Hover.update();
                             CapaDestacada=null;
                         },
+                        //Cuando dejamos de pasar el cursor
                         mouseout : function (e) {
                             Mapa_Act.resetStyle(e.target);
                             
@@ -525,11 +525,7 @@
 
                     });
                     layer.on("click", function () {
-                        //Tarjeta_indv(Modulo, Tema, Indicador, Año, feature.properties.NOMGEO);
-                        //Tarjeta_por_Modulo(Modulo, Año, feature.properties.NOMGEO);
-                        //Tarjeta_por_Año(Año);
-                        //Municipio = feature.properties.NOMGEO
-                        // 1. Creamos un contenedor temporal para el popup
+                        //Creamos un contenedor temporal para el popup
                         const contenedor = document.createElement('div');
                         contenedor.style.cssText = "width:300px; min-height:350px; display:block;"; 
                         contenedor.innerHTML = `
@@ -552,13 +548,15 @@
                                 </div>
                                 <canvas id="canvasPopup" width="300" height="300" style="display:block;"></canvas>
                             </div>
-                        `;//Curiosamente ponerle el título por defecto como "No Carga" ayuda, pues si todo sale bien debería reescribirse
-                        //Pero por ejemplo si se pierde la conexión entonces sale ese que estápor defecto
+                        `;//[ACTUALIZAR]
+                        
+                        //Curiosamente ponerle el título por defecto como "No Carga" ayuda, pues si todo sale bien debería reescribirse
+                        //Pero por ejemplo si se pierde la conexión entonces sale ese que está por defecto
                         layer.bindPopup(contenedor).openPopup();
 
                     });
                     layer.bindTooltip(feature.properties.NOMGEO, {
-                        permanent: true,   //si pero luego no
+                        permanent: true,   //sí pero luego no
                         direction: "center",
                         className: "etiqueta",
                     });
@@ -629,9 +627,9 @@
 
 //La función primera nos dará la información necesaria para nuestro Popup
         //Por lo que se debe llamar cada vez que se hace clic sobre un municipio
-        function Tarjeta_indv(M,T,I,A,Mpio,ID){ // M de Módulo, T de Tema, I de indicador, A de año y Mpio del municipio (NOMGEO)
+        function Datos_Pastel(M,T,I,A,Mpio,ID){ // M de Módulo, T de Tema, I de indicador, A de año, Mpio del municipio (NOMGEO) e ID es para encontrar el popup con el canva
             let Semi_combinacion = "M"+M+"_"+T+"_"+I+"_"; //Para poder usar la de varios años
-            const columnas = [Semi_combinacion+"20", Semi_combinacion+"21", Semi_combinacion+"22",
+            const columnas = [Semi_combinacion+"20", Semi_combinacion+"21", Semi_combinacion+"22", //[ACTUALIZAR]
                 Semi_combinacion+"23", Semi_combinacion+"24",Semi_combinacion+"25", "NOMGEO"]; //Hasta el año actual
 
             //Y la filtramos
@@ -650,73 +648,14 @@
             let indicador_año = columnas_año.map(col => geojsonFiltrado3.properties[col]);
             console.log(indicador_año);
 
-
-
             v_AñoMpio = (100 * indicador_año.filter(v => Number(v) === 1).length) / indicador_año.length;
-            console.log(v_AñoMpio+" % de optimos") //
-
             a_AñoMpio = (100 * indicador_año.filter(v => Number(v) === 2).length) / indicador_año.length;
-            console.log(a_AñoMpio+" % de en proceso") //
-
             r_AñoMpio = (100 * indicador_año.filter(v => Number(v) === 3).length) / indicador_año.length;
-            console.log(r_AñoMpio+" % de rezago") //
-
             nm_AñoMpio = (100 * indicador_año.filter(v => Number(v) === 4).length) / indicador_año.length;
-            console.log(nm_AñoMpio+" % de no medibles") //
-
             ndR_AñoMpio = (100 * indicador_año.filter(v => Number(v) === 5).length) / indicador_año.length;
-            console.log(ndR_AñoMpio+" % de rezago por no info") //
-
             nd_AñoMpio = (100 * indicador_año.filter(v => Number(v) === 0).length) / indicador_año.length;
-            console.log(nd_AñoMpio+" % de no disponible") //
             
-            // Verificación en consola
-            console.log("Datos para la gráfica:", [v_AñoMpio, a_AñoMpio, r_AñoMpio]);
-            Gráfica_Pastel(Mpio,ID);
-        }
-
-        //Ya tenemos las funciones que nos pueden regresar los valores para las gáficas y el mapa
-        //Ahora solo necesitamos una forma de seleccionar los 4 niveles para filtrar sobre los valores
-        //Para ello crearemos 4 objetos tipo select en el index, pero necesitamos una forma de llenar las opciones
-        //Dado que el Tema depende del Módulo y el Indicador del Módulo y el Tema usaremos dos funciones que rellenen las opcciones 
-        //de sus respectivos select
-
-        //INDICADOR
-        function rellenar_Indicador(T){ //T nos dirá el Tema que se ha seleccionado
-            const menu = document.getElementById("selector_indicador");
-            menu.innerHTML = ""; // Se supone que borra fácil TODAS las opciones del select
-
-            let filtrado_M=Lista_Descriptor.filter(v => v[1].split("_")[0] === T);
-            let lista= filtrado_M.map(fila => fila[2]);
-
-            lista.forEach(ind => {
-                const opcion = document.createElement("option");
-                opcion.value = ind.split("_")[0];
-                opcion.text = ind.replace(/\_/g, " ");
-                menu.appendChild(opcion);
-            })
-            
-            Crear_Mapa(T.split(".")[0],T.split(".")[1],"1",Año);
-        }
-
-        //TEMA
-        function rellenar_Tema(M){ //X nos dirá el Módulo que se ha escogido
-            const menu = document.getElementById("selector_tema");
-            menu.innerHTML = ""; // Se supone que borra fácil TODAS las opciones del select
-
-            let filtrado_M=Lista_Descriptor.filter(v => v[0].split("_")[0] === M);
-            let lista_sucia= filtrado_M.map(fila => fila[1]); //En esta se repite los valores tal como en el excel
-            let lista = lista_sucia.filter((item, index) => lista_sucia.indexOf(item) === index); //Esto limpia como un unique
-
-            lista.forEach(ind => {
-                const opcion = document.createElement("option");
-                opcion.value = ind.split("_")[0];
-                opcion.text = ind.replace(/\_/g, " ");
-                menu.appendChild(opcion);
-            })
-            rellenar_Indicador(M+".1");
-            Crear_Mapa(M,"1","1",Año);
-
+            Gráfica_Pastel(Mpio,ID); //Ya con los datos lanzamos la gráfica
         }
         //Ahora queremos la función que genera y cambia la grafica de pastel
         function Gráfica_Pastel(Mpio,ID){
@@ -761,10 +700,11 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context){
-                                    x=context.formattedValue.split(",")[0];
-                                    y=context.formattedValue.split(",")[1];
-                                    z=y.slice(0,2);
-                                    return x+"."+z+"%";
+                                    //let x=context.formattedValue.split(",")[0];
+                                    //let y=context.formattedValue.split(",")[1];
+                                    //let z=y.slice(0,2);
+                                    let x=context.formattedValue.toLocaleString('es-MX',{minimumFractionDigits: 0, maximumFractionDigits: 2});
+                                    return x+"%";
                                 }
                             }
                         }
@@ -773,6 +713,51 @@
             });
 
         }
+
+        //Ya tenemos las funciones que nos pueden regresar los valores para las gáficas y el mapa
+        //Ahora solo necesitamos una forma de seleccionar los 4 niveles para filtrar sobre los valores
+        //Para ello crearemos previamente 4 objetos tipo select en el index, pero necesitamos una forma de llenar las opciones
+        //Dado que el Tema depende del Módulo y el Indicador del Módulo y el Tema usaremos dos funciones que rellenen las opciones 
+        //de sus respectivos select
+
+        //INDICADOR
+        function rellenar_Indicador(T){ //T nos dirá el Tema que se ha seleccionado
+            const menu = document.getElementById("selector_indicador");
+            menu.innerHTML = ""; // Se supone que borra fácil TODAS las opciones del select
+
+            let filtrado_M=Lista_Descriptor.filter(v => v[1].split("_")[0] === T);
+            let lista= filtrado_M.map(fila => fila[2]);
+
+            lista.forEach(ind => {
+                const opcion = document.createElement("option");
+                opcion.value = ind.split("_")[0];
+                opcion.text = ind.replace(/\_/g, " ");
+                menu.appendChild(opcion);
+            })
+            
+            Crear_Mapa(T.split(".")[0],T.split(".")[1],"1",Año);
+        }
+
+        //TEMA
+        function rellenar_Tema(M){ //M nos dirá el Módulo que se ha escogido
+            const menu = document.getElementById("selector_tema");
+            menu.innerHTML = ""; // Se supone que borra fácil TODAS las opciones del select
+
+            let filtrado_M=Lista_Descriptor.filter(v => v[0].split("_")[0] === M);
+            let lista_sucia= filtrado_M.map(fila => fila[1]); //En esta se repite los valores tal como en el excel
+            let lista = lista_sucia.filter((item, index) => lista_sucia.indexOf(item) === index); //Esto limpia como un unique
+
+            lista.forEach(ind => {
+                const opcion = document.createElement("option");
+                opcion.value = ind.split("_")[0];
+                opcion.text = ind.replace(/\_/g, " ");
+                menu.appendChild(opcion);
+            })
+            rellenar_Indicador(M+".1"); //Como ya tenemos el tema ahora podemos llenar el Indicador
+            Crear_Mapa(M,"1","1",Año);
+
+        }
+        
 ///////////////////////////
         //Aquí leemos el excel que contiene nuestras clasificaciones como una lista de listas para más easy
         let Lista_Descriptor = [];
@@ -789,7 +774,6 @@
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
                     Lista_Descriptor = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    //console.log("Contenido del Excel:", Lista_Descriptor);
                 } catch (error) {
                     console.error("Error al procesar el Excel:", error);
                 }

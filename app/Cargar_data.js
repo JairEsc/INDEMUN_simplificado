@@ -1,3 +1,4 @@
+//[ACTUALIZAR]
 const Data2={
 "type": "FeatureCollection",
 "name": "CompiladoJSON_2C",

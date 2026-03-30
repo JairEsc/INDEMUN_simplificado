@@ -160,6 +160,9 @@
 
 
     <div style="width: 100wh; height: 70vh; position: relative;">
+        <div id="loading-message" style="position: absolute; top: 50%; left: 50%; z-index: 10000000000;">
+            <p>Cargando...</p>
+        </div>
         <canvas id="myChart2"></canvas>
     </div>
     <script src="Cargar_data.js"></script> 
@@ -223,29 +226,20 @@
             let modulos_año= columnas_modulo.map(col => geojsonFiltrado3.properties[col]);
 
             v_ModAñoMpio = (modulos_año.filter(v => Number(v) === 1).length);
-            console.log(v_ModAñoMpio+" de optimos") //
-
             a_ModAñoMpio = (modulos_año.filter(v => Number(v) === 2).length);
-            console.log(a_ModAñoMpio+" de en proceso") //
-
             r_ModAñoMpio = (modulos_año.filter(v => Number(v) === 3).length);
-            console.log(r_ModAñoMpio+" de rezago") //
-
             nm_ModAñoMpio = (modulos_año.filter(v => Number(v) === 4).length);
-            console.log(nm_ModAñoMpio+" de 4 (no medible)") //
-
             ndR_ModAñoMpio = (modulos_año.filter(v => Number(v) === 5).length);
-            console.log(ndR_ModAñoMpio+" de 5(rezago por no info)") //
-
             nd_ModAñoMpio = (modulos_año.filter(v => Number(v) === 0).length);
-            console.log(nd_ModAñoMpio+" de 0 (no disponible)") //
 
             Gráfica_Barras1(Mpio);
             
         }
         //Ahora queremos la función que genera y cambia la grafica de barras por Modulo-Año-Municipio
         function Gráfica_Barras1(Mpio){
-            //modal2.style.display = "block";
+            const loader=document.getElementById("loading-message");
+            loader.style.visibility="visible";
+
             data2 = {
             labels: ['Optimos', 'En Proceso', 'Rezago','Rezago por no información', 'No disponible', 'No medible'],
             datasets: [
@@ -290,7 +284,7 @@
                             display: false,
                             position: 'top',
                             onClick: (e) => { 
-                                // Al dejar esto vacío, el clic no hace nada (no tacha la serie)
+                                //Al dejar esto vacío, el clic no hace nada
                                 return null; 
                             },
                         },
@@ -298,6 +292,14 @@
                         title: {
                             display: true,
                             text: 'Indicadores en '+Mpio+' en el año 20'+Año
+                        }
+                    },
+                    animation: {
+                        onComplete: () =>{
+                            loader.style.visibility="hidden";
+                        },
+                        onProgress: function(){
+                            loader.style.visibility="visible";
                         }
                     }
                 },
@@ -339,7 +341,6 @@
 
                 let z4 = Object.values(feature.properties).filter(v => Number(v) === 4).length;
                 NoMedible.push(z4);
-                console.log(z4);
 
                 let z5 = Object.values(feature.properties).filter(v => Number(v) === 5).length;
                 RezNoInfo.push(z5);
@@ -352,6 +353,8 @@
         }
         //Y ahora queremos la función que genera y cambia la grafica de barras del Total
         function Gráfica_Barras0(A){
+            const loader=document.getElementById("loading-message");
+            loader.style.visibility="visible";
             Año=A;
             data0 = {
             labels: [
@@ -502,13 +505,13 @@
                         x: {
                             stacked: false,
                             ticks: {
-                autoSkip: false,
-                maxRotation: 90,
-                minRotation: 90, //Iguales para que queden en vertical siempre y quepan todos
-                font: {
-                    size: 9
-                }
-            }
+                                autoSkip: false,
+                                maxRotation: 90,
+                                minRotation: 90, //Iguales para que queden en vertical siempre y quepan todos
+                                font: {
+                                    size: 9
+                                }
+                            }
                         }
                     },
                     plugins: {
@@ -518,6 +521,14 @@
                         title: {
                             display: true,
                             text: 'Indicadores totales por municipio en el año 20'+A
+                        }
+                    },
+                    animation: {
+                        onComplete: function(){
+                            loader.style.visibility="hidden";
+                        },
+                        onProgress: function(){
+                            loader.style.visibility="visible";
                         }
                     }
                 },
