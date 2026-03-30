@@ -160,9 +160,6 @@
 
 
     <div style="width: 100wh; height: 70vh; position: relative;">
-        <div id="loading-message" style="position: absolute; top: 50%; left: 50%; z-index: 10000000000;">
-            <p>Cargando...</p>
-        </div>
         <canvas id="myChart2"></canvas>
     </div>
     <script src="Cargar_data.js"></script> 
@@ -237,8 +234,8 @@
         }
         //Ahora queremos la función que genera y cambia la grafica de barras por Modulo-Año-Municipio
         function Gráfica_Barras1(Mpio){
-            const loader=document.getElementById("loading-message");
-            loader.style.visibility="visible";
+            //const loader=document.getElementById("loading-message");
+            //loader.style.visibility="visible";
 
             data2 = {
             labels: ['Optimos', 'En Proceso', 'Rezago','Rezago por no información', 'No disponible', 'No medible'],
@@ -293,14 +290,6 @@
                             display: true,
                             text: 'Indicadores en '+Mpio+' en el año 20'+Año
                         }
-                    },
-                    animation: {
-                        onComplete: () =>{
-                            loader.style.visibility="hidden";
-                        },
-                        onProgress: function(){
-                            loader.style.visibility="visible";
-                        }
                     }
                 },
             });
@@ -353,8 +342,8 @@
         }
         //Y ahora queremos la función que genera y cambia la grafica de barras del Total
         function Gráfica_Barras0(A){
-            const loader=document.getElementById("loading-message");
-            loader.style.visibility="visible";
+            //const loader=document.getElementById("loading-message");
+            //loader.style.visibility="visible";
             Año=A;
             data0 = {
             labels: [
@@ -522,14 +511,6 @@
                             display: true,
                             text: 'Indicadores totales por municipio en el año 20'+A
                         }
-                    },
-                    animation: {
-                        onComplete: function(){
-                            loader.style.visibility="hidden";
-                        },
-                        onProgress: function(){
-                            loader.style.visibility="visible";
-                        }
                     }
                 },
             });
@@ -541,31 +522,45 @@
         function Crear_Graficas(M,A){
             Año=A;
             if(M=="0"){ //Como Modulo=0 entonces queremos ver la de total por año
-                document.getElementById("Bttn_M").style.background="#FFFFFF";
-                document.getElementById("Bttn_M").style.color="#000000";
-                document.getElementById("Bttn_A").style.background="#621132";
-                document.getElementById("Bttn_A").style.color="#FFFFFF";
-                document.getElementById("selector_Mpio").style.visibility="hidden";
-                document.getElementById("selector_modulo").style.visibility="hidden";
-                Tarjeta_por_Año(A);
-                OpcionSeleccionada=2; //y por tanto estamos en la segunda opción
-                document.getElementById('Titulo2').textContent="Totales por Municipio";
-                document.getElementById('T1').style.visibility="hidden";
-                document.getElementById('T2').style.visibility="hidden";
+                if(OpcionSeleccionada==1){
+                    document.getElementById("Bttn_M").style.background="#FFFFFF";
+                    document.getElementById("Bttn_M").style.color="#000000";
+                    document.getElementById("Bttn_A").style.background="#621132";
+                    document.getElementById("Bttn_A").style.color="#FFFFFF";
+                    document.getElementById("selector_Mpio").style.visibility="hidden";
+                    document.getElementById("selector_modulo").style.visibility="hidden";
+                    //Tarjeta_por_Año(A);
+                    OpcionSeleccionada=2; //y por tanto estamos en la segunda opción
+                    document.getElementById('Titulo2').textContent="Totales por Municipio";
+                    document.getElementById('T1').style.visibility="hidden";
+                    document.getElementById('T2').style.visibility="hidden";
+                    document.getElementById("myChart2").style.visibility="hidden";
+                    setTimeout(()=>{
+                        Tarjeta_por_Año(A)
+                        setTimeout(()=>{
+                            document.getElementById("myChart2").style.visibility="visible";
+                        },0);
+                    },0);
+                }
+                    
+                //Tarjeta_por_Año(A);
+
             }else{
-                document.getElementById("Bttn_M").style.background="#621132";
-                document.getElementById("Bttn_M").style.color="#FFFFFF";
-                document.getElementById("Bttn_A").style.background="#FFFFFF";
-                document.getElementById("Bttn_A").style.color="#000000";
-                //Permite la visualización
-                document.getElementById("selector_Mpio").style.visibility="visible";
-                document.getElementById("selector_modulo").style.visibility="visible";
-                document.getElementById("selector_Año").style.visibility="visible";
-                Tarjeta_por_Modulo(M,A);//Si Modulo!=0 entonces queremos ver la de Modulo-Año-Municipio
-                OpcionSeleccionada=1;
-                document.getElementById("Titulo2").textContent="Resumen por Año, Municipio y Módulo";
-                document.getElementById('T1').style.visibility="visible";
-                document.getElementById('T2').style.visibility="visible";
+                if(OpcionSeleccionada==2){
+                    document.getElementById("Bttn_M").style.background="#621132";
+                    document.getElementById("Bttn_M").style.color="#FFFFFF";
+                    document.getElementById("Bttn_A").style.background="#FFFFFF";
+                    document.getElementById("Bttn_A").style.color="#000000";
+                    //Permite la visualización
+                    document.getElementById("selector_Mpio").style.visibility="visible";
+                    document.getElementById("selector_modulo").style.visibility="visible";
+                    document.getElementById("selector_Año").style.visibility="visible";
+                    Tarjeta_por_Modulo(M,A);//Si Modulo!=0 entonces queremos ver la de Modulo-Año-Municipio
+                    OpcionSeleccionada=1;
+                    document.getElementById("Titulo2").textContent="Resumen por Año, Municipio y Módulo";
+                    document.getElementById('T1').style.visibility="visible";
+                    document.getElementById('T2').style.visibility="visible";
+                }
             }
         }
         //Y esta función es solo para que el mismo select de año funcione para las dos opciones anteriores
