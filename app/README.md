@@ -12,7 +12,7 @@ Todo el trabajo se basará en las sigiuentes clasificaciones:
 
 ACTUALIZAR
 
-Para facilitar he colocado el comentario "[ACTUALIZAR]" cerca de aquellas líneas o secciones que se deben modificar en cas de querer actualizar.
+Para facilitar he colocado el comentario "[ACTUALIZAR]" cerca de aquellas líneas o secciones que se deben modificar en caso de querer actualizar.
 
 Actualizar Parte 1: Actualizar los datos
 

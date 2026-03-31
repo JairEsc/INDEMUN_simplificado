@@ -237,14 +237,14 @@
             const CanvasID= popupNode.querySelector('#canvasPopup');
             if (CanvasID) { //Si sí lo encuentra...
                 //RECUADROS   
-                //Modificación: Ahora se debe buscar en Data2 pues el "e" está filtrado solo al año del select, por lo que 
+                //Modificación: Ahora se debe buscar en Data pues el "e" está filtrado solo al año del select, por lo que 
                 //los demás años aparecerían en negro, entonces hay que buscar en el feature collectiom original
 
                 //Buscamos primero cual es la NOMGEO del municipio que ACTUALMENTE tiene el popup
                 const Mpio_NOMGEO = e.popup._source.feature.properties.NOMGEO;
 
-                //Ahora nos vamos al Data2 que viene del GeoJDON original y buscamos ese municipio
-                const Mpio_Act = Data2.features.find(f => f.properties.NOMGEO === Mpio_NOMGEO).properties;
+                //Ahora nos vamos al Data que viene del GeoJDON original y buscamos ese municipio
+                const Mpio_Act = Data.features.find(f => f.properties.NOMGEO === Mpio_NOMGEO).properties;
 
                 
                 for(const año of ["20","21","22","23","24","25"]){ //[ACTUALIZAR]
@@ -335,7 +335,7 @@
                     <input list="municipios" id="input-busqueda" placeholder="Buscar municipio:" 
                         style="padding: 10px 15px; border-radius: 20px; border: none; width: 15vw; outline: none; font-size: 14px;">
                     <datalist id="municipios">
-                        ${Data2.features.map(f => `<option value="${f.properties.NOMGEO}">`).join('')}
+                        ${Data.features.map(f => `<option value="${f.properties.NOMGEO}">`).join('')}
                     </datalist>
                 </div>
             `;
@@ -462,7 +462,7 @@
 
             // Filtramos solo las columnas deseadas
             const columnas = [Combinacion, "NOMGEO"];
-            const geojsonFiltrado = filtrarPorCol(Data2, columnas);
+            const geojsonFiltrado = filtrarPorCol(Data, columnas);
 
             if (Mapa_Act) {
                 map.removeLayer(Mapa_Act);
@@ -624,13 +624,13 @@
                 Semi_combinacion+"23", Semi_combinacion+"24",Semi_combinacion+"25", "NOMGEO"]; //Hasta el año actual
 
             //Y la filtramos
-            const geojsonFiltrado = filtrarPorCol(Data2, columnas);
+            const geojsonFiltrado = filtrarPorCol(Data, columnas);
             let geojsonFiltrado2 = geojsonFiltrado.features.find(
                 f => f.properties.NOMGEO === Mpio
             );
             
             
-            let geojsonFiltrado3 = Data2.features.find(
+            let geojsonFiltrado3 = Data.features.find(
                 f => f.properties.NOMGEO === Mpio
             );
 
