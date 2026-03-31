@@ -44,7 +44,7 @@
 
     <form style="position: absolute; z-index: 100000; top: 0vh;padding: 0px;">
             <div id="capas-contenido">
-                    <select name="Modulo" id="selector_modulo" onchange="rellenar_Tema(value)">
+                    <select name="Modulo" id="selector_modulo" onchange="Rellenar_Tema(value)">
                         <option value="1" selected>M1. Organización</option>
                         <option value="2">M2. Hacienda</option>
                         <option value="3">M3. Gestión del Territorio</option>
@@ -60,7 +60,7 @@
     <form style="position: absolute; z-index: 100000; top: 0vh;">
             <div id="capas-contenido">
                     <!--<p>Tema:</p>-->
-                    <select name="Tema" id="selector_tema" onchange="rellenar_Indicador(value)">
+                    <select name="Tema" id="selector_tema" onchange="Rellenar_Indicador(value)">
                         <option value="1.1" selected>1.1 Estructura</option>
                         <option value="1.2">1.2 Planeación</option>
                         <option value="1.3">1.3 Contraloría</option>
@@ -125,20 +125,11 @@
 
 //////////////////Variables Globales////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
         //Ya tenemos lo básico, es momento de declarar las variables globales necesarias para después
 
         //Para la gráfica de pastel
         let data;
         let Grafica;
-        //const ctx =document.getElementById('myChart').getContext('2d');
-
-        //const modal = document.getElementById("chartModal");
-        //const openBtn = document.getElementById("openModal");
-        //const closeBtn = document.getElementById("closeModal");
-
-
-
 
         //Estas son vitales pues serán las que constantemente dicten la selección en la que estamos
         let Modulo= "1"; //del 1 al 8
@@ -188,32 +179,32 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         //Todo el trabajo se basará en las sigiuentes clasificaciones:
+
         //v = óptimo (verde) = 1
         //a = en proceso (amarillo) = 2
         //r = rezago (rojo) = 3
         //ndR = rezago por no presentar información (rojo obscuro) = 5
         //nd = información no disponible (gris) = 0
-        //nm = no medible (blanco) = 4
-
+        //nm = no medible (gris obscuro) = 4 //Itz propuso cambiarlo de blanco a gris obscuro
 
         // Función para determinar el color según el valor del indicador
         const getColor = (value) => {
             if (value === null || value === undefined) {
-                return 'rgba(0, 0, 0, 0.95)'; // Negro para valores no definidos
+                return 'rgba(0, 0, 0, 0.95)'; // Negro con 95% para valores no definidos
             }
             switch (value) {
                 case 1: //Optimo
-                return '#54AB18';  // Verde con 80% de opacidad //ORIGINAL: 144,232,82
+                return 'rgba(84,171,24,0.9)';  // Verde con 90% de opacidad 
                 case 2: //En proceso
-                return '#FFF540';  // Amarillo con 80% de opacidad
+                return 'rgba(255,245,64,0.9)';  // Amarillo con 90% de opacidad
                 case 3: //Rezago
-                return '#FF0000';     // Rojo con 80% de opacidad
+                return 'rgba(255,0,0,0.9)';     // Rojo con 90% de opacidad
                 case 4://No medible
-                return '#757575'; // Blanco con 80% de opacidad
+                return 'rgba(117,117,117,0.9)'; // Gris obscuro con 80% de opacidad
                 case 0: //Información no disponible
-                return '#B0B0B0'; // Gris con 80% de opacidad
+                return 'rgba(176,176,176,0.9)'; // Gris con 90% de opacidad
                 case 5: //Rezago por no presentar información
-                return '#662D2D'; // Rojo obscuro con 80% de opacidad
+                return 'rgba(102,45,45,0.9)'; // Rojo obscuro con 90% de opacidad
                 default:
                 return 'rgba(0, 0, 0, 0.95)';  // Negro con 95% de opacidad para valores desconocidos
             }
@@ -298,9 +289,9 @@
         });
 
         //Ahora vamos a hacer la semaforización
-        const semaforizacion = L.control({ position: 'bottomright' });
+        const Semaforizacion = L.control({ position: 'bottomright' });
 
-        semaforizacion.onAdd = function() {
+        Semaforizacion.onAdd = function() {
             const niveles = [1, 2, 3, 5, 0, 4]; //los puse así porque así van también en las gráficas
             const N_Indicador = ["Óptimo (v)", "En Proceso (a)", "Rezago (r)",
                 "Sin Información (ndR)", "No Disponible (nd)", "No Medible (nm)"];
@@ -330,13 +321,13 @@
             
             return div;
         };
-        semaforizacion.addTo(map);
+        Semaforizacion.addTo(map);
         //
 
         //Ahora el buscador
-        const buscador = L.control({ position: 'bottomleft' }); //Pero al fianl no esta abajo a la izquierda
+        const Buscador = L.control({ position: 'bottomleft' }); //Pero al fianl no esta abajo a la izquierda
 
-        buscador.onAdd = function() {
+        Buscador.onAdd = function() {
             const div = L.DomUtil.create('div', 'buscador_Mpio'); //Desde ahora es mi nueva función favorita porque
                                                                   //hasta la clase deja asignarle
             div.innerHTML = `
@@ -371,7 +362,7 @@
             L.DomEvent.disableClickPropagation(div);
             return div;
         };
-        buscador.addTo(map);
+        Buscador.addTo(map);
 
         //Ahora hay que hacer el "hover"
         const Hover = L.control({ position: 'bottomright' });
@@ -461,7 +452,7 @@
         
         let CapaDestacada = null;
         function Crear_Mapa(M,T,I,A) {
-            //Cada que la función se manda a lapp\LOGO INDEMUN1-04.pnglamar para crear el mapa reescribirá los valores 
+            //Cada que la función se manda a llamar para crear el mapa reescribirá los valores 
             //de las variables globales de la selección actual
             Modulo = M;
             Tema = T;
@@ -721,7 +712,7 @@
         //de sus respectivos select
 
         //INDICADOR
-        function rellenar_Indicador(T){ //T nos dirá el Tema que se ha seleccionado
+        function Rellenar_Indicador(T){ //T nos dirá el Tema que se ha seleccionado
             const menu = document.getElementById("selector_indicador");
             menu.innerHTML = ""; // Se supone que borra fácil TODAS las opciones del select
 
@@ -739,7 +730,7 @@
         }
 
         //TEMA
-        function rellenar_Tema(M){ //M nos dirá el Módulo que se ha escogido
+        function Rellenar_Tema(M){ //M nos dirá el Módulo que se ha escogido
             const menu = document.getElementById("selector_tema");
             menu.innerHTML = ""; // Se supone que borra fácil TODAS las opciones del select
 
@@ -753,7 +744,7 @@
                 opcion.text = ind.replace(/\_/g, " ");
                 menu.appendChild(opcion);
             })
-            rellenar_Indicador(M+".1"); //Como ya tenemos el tema ahora podemos llenar el Indicador
+            Rellenar_Indicador(M+".1"); //Como ya tenemos el tema ahora podemos llenar el Indicador
             Crear_Mapa(M,"1","1",Año);
 
         }

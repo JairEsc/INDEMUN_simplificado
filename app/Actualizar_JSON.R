@@ -34,8 +34,10 @@ Compilado <- Compilado |>
 
 sf::st_write(Compilado,"CompiladoJSON.geojson",driver = "GeoJSON", delete_dsn = TRUE)
 
+compilado
 
-#A continuación puedes correr este fragmento para asegurarte que solo existan valores de 0 al 5
+
+#A continuación puedes correr este fragmento para asegurarte que solo existan valores del 0 al 5
 for(i in 1:84){
   for(j in 7:(ncol(Compilado)-1)){
     aux=Compilado[i,j] %in% c(0:5)
@@ -46,3 +48,21 @@ for(i in 1:84){
     }
   }
 }
+
+#Este es para arreglar la etiqueta de Metepec
+poligonos_indiv <- sf::st_cast(Compilado, to = "POLYGON")
+
+X=poligonos_indiv[36,]
+poligonos_indiv[36,]=poligonos_indiv[37,]
+poligonos_indiv[37,]=X
+
+
+mapa_disuelto <- poligonos_indiv |>
+  group_by(CVEGEO) |>
+  summarise(geometry = sf::st_combine(geometry))
+
+
+B=sf::st_drop_geometry(Compilado)
+compilado2=sf::st_as_sf(merge(x = B, y = mapa_disuelto, by="CVEGEO"))
+
+sf::st_write(compilado2,"CompiladoJSON.geojson",driver = "GeoJSON", delete_dsn = TRUE)
